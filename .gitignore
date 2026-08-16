@@ -1,0 +1,18 @@
+## Build & Output Folders
+bin/
+obj/
+
+## IDE & Editor Specific
+.vscode/
+.vs/
+*.user
+*.userosscache
+*.suo
+
+## Sensitive Settings 
+appsettings.Development.json
+appsettings.Production.json
+
+## OS Generated Files
+.DS_Store
+Thumbs.db
