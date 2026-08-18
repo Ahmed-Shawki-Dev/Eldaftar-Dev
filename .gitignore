@@ -12,6 +12,9 @@ obj/
 ## Sensitive Settings 
 appsettings.Development.json
 appsettings.Production.json
+appsettings.json
+appsettings.*.json
+!appsettings.Example.json
 
 ## OS Generated Files
 .DS_Store

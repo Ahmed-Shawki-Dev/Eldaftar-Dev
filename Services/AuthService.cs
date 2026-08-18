@@ -10,7 +10,8 @@ namespace api.Services;
 public class AuthService(
     ApplicationDBContext context,
     UserManager<AppUser> userManager,
-    RoleManager<IdentityRole<Guid>> roleManager
+    RoleManager<IdentityRole<Guid>> roleManager,
+    ITokenService tokenService
 ) : IAuthService
 {
     public async Task<ApiResponse<TenantAuthResponseDto>> RegisterTenantAsync(RegisterTenantDto dto)
@@ -92,5 +93,34 @@ public class AuthService(
             await transaction.RollbackAsync();
             return ApiResponse<TenantAuthResponseDto>.Fail($"حدث خطأ غير متوقع: {ex.Message}");
         }
+    }
+
+    public async Task<ApiResponse<LoginResponseDto>> LoginAsync(string slug, LoginDto dto)
+    {
+        var normalizedSlug = slug.ToLower().Trim();
+        var compositeUserName = $"{normalizedSlug}_{dto.PhoneNumber.Trim()}";
+
+        var user = await userManager.FindByNameAsync(compositeUserName);
+        if (user == null)
+        {
+            return ApiResponse<LoginResponseDto>.Fail("رقم الهاتف أو كلمة المرور غير صحيحة.");
+        }
+
+        var isPasswordValid = await userManager.CheckPasswordAsync(user, dto.Password);
+        if (!isPasswordValid)
+        {
+            return ApiResponse<LoginResponseDto>.Fail("رقم الهاتف أو كلمة المرور غير صحيحة.");
+        }
+
+        var tenant = await context.Tenants.FirstOrDefaultAsync(t => t.Id == user.TenantId);
+        if (tenant == null)
+        {
+            return ApiResponse<LoginResponseDto>.Fail("السنتر المرتبط بهذا الحساب غير موجود.");
+        }
+
+        var token = await tokenService.CreateTokenAsync(user, tenant);
+        var res = new LoginResponseDto(token);
+
+        return ApiResponse<LoginResponseDto>.Ok(res, "تم تسجيل الدخول بنجاح.");
     }
 }
