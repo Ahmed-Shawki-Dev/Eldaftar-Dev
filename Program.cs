@@ -1,7 +1,9 @@
 using System.Text;
 using api.Data;
 using api.DTOs;
+using api.Interfaces;
 using api.Models;
+using api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -81,6 +83,9 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
         return new BadRequestObjectResult(res);
     };
 });
+
+// * Define Services
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 
