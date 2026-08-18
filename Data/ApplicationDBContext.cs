@@ -16,10 +16,19 @@ public class ApplicationDBContext(DbContextOptions<ApplicationDBContext> options
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
-        // * Unique Tenant Slug
+
+        // 1. Unique Slug Centers
         builder.Entity<Tenant>().HasIndex(t => t.Slug).IsUnique();
-        // * Store Enum as String in Postgres
+
+        // 2. Enum As String
         builder.Entity<Subscription>().Property(s => s.Plan).HasConversion<string>();
+        builder.Entity<Tenant>().Property(t => t.Type).HasConversion<string>();
+
+        // 3. Dont repeat phone number at same tenant
+        builder.Entity<AppUser>().HasIndex(u => new { u.TenantId, u.PhoneNumber }).IsUnique();
+
+        // 4. Dont repeat the teacher at same center
+        builder.Entity<Teacher>().HasIndex(t => new { t.TenantId, t.UserId }).IsUnique();
     }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
