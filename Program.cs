@@ -1,8 +1,10 @@
 using System.Text;
 using api.Data;
+using api.DTOs;
 using api.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -55,6 +57,30 @@ builder
             ),
         };
     });
+
+// * Universal Custom Model Validation Error Handler
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = actionContext =>
+    {
+        var errors = actionContext
+            .ModelState.Values.SelectMany(v => v.Errors)
+            .Select(e =>
+                string.IsNullOrEmpty(e.ErrorMessage)
+                    ? e.Exception?.Message ?? "بيانات غير صالحة"
+                    : e.ErrorMessage
+            )
+            .ToList();
+
+        var res = new ApiResponse<object>(
+            Success: false,
+            Message: "خطأ في التحقق من البيانات",
+            Errors: errors
+        );
+
+        return new BadRequestObjectResult(res);
+    };
+});
 
 var app = builder.Build();
 
