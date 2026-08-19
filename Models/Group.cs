@@ -12,6 +12,7 @@ public class Group : BaseModel
     public required string Grade { get; set; }
     public decimal Price { get; set; } = 0;
     public PaymentType PaymentType { get; set; } = PaymentType.PerSession;
+    public bool IsActive { get; set; } = true;
 
     // * Soft Delete
     public bool IsDeleted { get; set; } = false;
