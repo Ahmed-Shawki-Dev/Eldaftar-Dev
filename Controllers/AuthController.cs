@@ -4,9 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers;
 
+[Route("api")]
 public class AuthController(IAuthService authService) : BaseApiController
 {
-    [HttpPost("register-tenant")]
+    [HttpPost("auth/register-tenant")]
     public async Task<IActionResult> RegisterTenant([FromBody] RegisterTenantDto dto)
     {
         var result = await authService.RegisterTenantAsync(dto);
@@ -17,7 +18,7 @@ public class AuthController(IAuthService authService) : BaseApiController
         return Success(result.Data!, result.Message);
     }
 
-    [HttpPost("/api/{slug}/Auth/login")]
+    [HttpPost("{slug}/auth/login")]
     public async Task<IActionResult> Login([FromRoute] string slug, [FromBody] LoginDto dto)
     {
         var result = await authService.LoginAsync(slug, dto);

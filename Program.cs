@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using api.Data;
 using api.DTOs;
@@ -45,6 +46,9 @@ builder
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
+            RoleClaimType = "role",
+            NameClaimType = "userId",
+
             ValidateIssuer = true,
             ValidIssuer = builder.Configuration["JWT:Issuer"],
 

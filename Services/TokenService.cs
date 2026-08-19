@@ -14,22 +14,22 @@ public class TokenService(IConfiguration config, UserManager<AppUser> userManage
     {
         var claims = new List<Claim>
         {
-            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty),
-            new(ClaimTypes.Name, user.UserName ?? string.Empty),
-            new("tenant_id", tenant.Id.ToString()),
-            new("tenant_slug", tenant.Slug),
-            new("tenant_type", tenant.Type.ToString())
+            new("userId", user.Id.ToString()),
+            new("phone", user.PhoneNumber ?? string.Empty),
+            new("tenantId", tenant.Id.ToString()),
+            new("tenantSlug", tenant.Slug),
+            new("tenantType", tenant.Type.ToString()),
         };
 
         var roles = await userManager.GetRolesAsync(user);
         foreach (var role in roles)
         {
-            claims.Add(new Claim(ClaimTypes.Role, role));
+            claims.Add(new Claim("role", role));
         }
 
-        var secretKey = config["JWT:Secret"] 
-            ?? throw new InvalidOperationException("JWT:SecretKey is not configured");
+        var secretKey =
+            config["JWT:Secret"]
+            ?? throw new InvalidOperationException("JWT:Secret is not configured");
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -40,7 +40,7 @@ public class TokenService(IConfiguration config, UserManager<AppUser> userManage
             Expires = DateTime.UtcNow.AddDays(7),
             Issuer = config["JWT:Issuer"],
             Audience = config["JWT:Audience"],
-            SigningCredentials = creds
+            SigningCredentials = creds,
         };
 
         var tokenHandler = new JwtSecurityTokenHandler();
