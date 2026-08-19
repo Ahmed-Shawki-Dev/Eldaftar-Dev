@@ -9,6 +9,10 @@ public class Teacher : BaseModel
     public string? Bio { get; set; }
     public string? PhotoUrl { get; set; }
 
+    // * Soft Delete
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+
     // * Staff (one to many)
     public ICollection<Staff> Staffs { get; set; } = new List<Staff>();
 
@@ -21,4 +25,7 @@ public class Teacher : BaseModel
 
     [ForeignKey(nameof(UserId))]
     public AppUser User { get; set; } = null!;
+
+    // * Relation Group (1-M)
+    public ICollection<Group> Groups { get; set; } = new List<Group>();
 }

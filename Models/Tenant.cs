@@ -25,4 +25,13 @@ public class Tenant : BaseModel
 
     [ForeignKey(nameof(UserId))]
     public AppUser? User { get; set; } = null!;
+
+    // * Relation Student (1-M)
+    public ICollection<Student> Students { get; set; } = new List<Student>();
+
+    // * Relation Group (1-M)
+    public ICollection<Group> Groups { get; set; } = new List<Group>();
+
+    // * Relation Academic Term (1-M)
+    public ICollection<AcademicTerm> AcademicTerms { get; set; } = new List<AcademicTerm>();
 }
