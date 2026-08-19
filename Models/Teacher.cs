@@ -28,4 +28,7 @@ public class Teacher : BaseModel
 
     // * Relation Group (1-M)
     public ICollection<Group> Groups { get; set; } = new List<Group>();
+
+    // * Relation Exam (1-M)
+    public ICollection<Exam> Exams { get; set; } = new List<Exam>();
 }

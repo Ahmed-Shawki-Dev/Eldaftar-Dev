@@ -16,6 +16,8 @@ public class ApplicationDBContext(DbContextOptions<ApplicationDBContext> options
     public DbSet<Student> Students { get; set; }
     public DbSet<Group> Groups { get; set; }
     public DbSet<StudentGroup> StudentGroups { get; set; }
+    public DbSet<Exam> Exams { get; set; }
+    public DbSet<ExamResult> ExamResults { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -66,6 +68,17 @@ public class ApplicationDBContext(DbContextOptions<ApplicationDBContext> options
 
         // 9. Dont repeat Student In The Same Group
         builder.Entity<StudentGroup>().HasIndex(sg => new { sg.StudentId, sg.GroupId }).IsUnique();
+
+        // 10. Dont repeat Student Mark In The Same Exam
+        builder.Entity<ExamResult>().HasIndex(er => new { er.ExamId, er.StudentId }).IsUnique();
+
+        // 11. Delete Exam Result When Delete Exma
+        builder
+            .Entity<Exam>()
+            .HasMany(e => e.Results)
+            .WithOne(r => r.Exam)
+            .HasForeignKey(r => r.ExamId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // ! Soft Delete Constrains
         builder.Entity<Student>().HasQueryFilter(s => !s.IsDeleted);

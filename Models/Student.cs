@@ -17,4 +17,7 @@ public class Student : BaseModel
 
     // ** Student Group
     public ICollection<StudentGroup> StudentGroups { get; set; } = new List<StudentGroup>();
+
+    // ** Exam Results
+    public ICollection<ExamResult> ExamResults { get; set; } = new List<ExamResult>();
 }

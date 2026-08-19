@@ -32,4 +32,7 @@ public class Group : BaseModel
 
     // 4. Student Group
     public ICollection<StudentGroup> StudentGroups { get; set; } = new List<StudentGroup>();
+
+    // 4. Exam
+    public ICollection<Exam> Exams { get; set; } = new List<Exam>();
 }
