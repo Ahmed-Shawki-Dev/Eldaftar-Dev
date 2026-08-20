@@ -20,4 +20,7 @@ public class Student : BaseModel
 
     // ** Exam Results
     public ICollection<ExamResult> ExamResults { get; set; } = new List<ExamResult>();
+
+    // ** Attendance
+    public ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();
 }

@@ -18,6 +18,9 @@ public class ApplicationDBContext(DbContextOptions<ApplicationDBContext> options
     public DbSet<StudentGroup> StudentGroups { get; set; }
     public DbSet<Exam> Exams { get; set; }
     public DbSet<ExamResult> ExamResults { get; set; }
+    public DbSet<GroupSchedule> GroupSchedules { get; set; }
+    public DbSet<Session> Sessions { get; set; }
+    public DbSet<Attendance> Attendances { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -32,6 +35,9 @@ public class ApplicationDBContext(DbContextOptions<ApplicationDBContext> options
         builder.Entity<Group>().Property(g => g.PaymentType).HasConversion<string>();
         builder.Entity<AcademicTerm>().Property(t => t.Type).HasConversion<string>();
         builder.Entity<StudentGroup>().Property(sg => sg.Status).HasConversion<string>();
+        builder.Entity<GroupSchedule>().Property(c => c.DayOfWeek).HasConversion<string>();
+        builder.Entity<Session>().Property(s => s.Status).HasConversion<string>();
+        builder.Entity<Attendance>().Property(a => a.Status).HasConversion<string>();
 
         // 3. Dont repeat phone number at same tenant
         builder.Entity<AppUser>().HasIndex(u => new { u.TenantId, u.PhoneNumber }).IsUnique();
@@ -68,7 +74,14 @@ public class ApplicationDBContext(DbContextOptions<ApplicationDBContext> options
         builder.Entity<AcademicTerm>().HasIndex(t => new { t.TenantId, t.Name }).IsUnique();
 
         // 9. Dont repeat Student In The Same Group
-        builder.Entity<StudentGroup>().HasIndex(sg => new { sg.StudentId, sg.GroupId }).IsUnique();
+        builder
+            .Entity<StudentGroup>()
+            .HasIndex(sg => new
+            {
+                sg.StudentId,
+                sg.GroupId,
+                sg.Status,
+            });
 
         // 10. Dont repeat Student Mark In The Same Exam
         builder.Entity<ExamResult>().HasIndex(er => new { er.ExamId, er.StudentId }).IsUnique();
@@ -80,6 +93,56 @@ public class ApplicationDBContext(DbContextOptions<ApplicationDBContext> options
             .WithOne(r => r.Exam)
             .HasForeignKey(r => r.ExamId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // 12. Don't Repeat Same Group With Start Date And Day
+        builder
+            .Entity<GroupSchedule>()
+            .HasIndex(c => new
+            {
+                c.GroupId,
+                c.DayOfWeek,
+                c.StartTime,
+            })
+            .IsUnique();
+
+        // 13. One Session Must Have One Student Id
+        builder.Entity<Attendance>().HasIndex(a => new { a.SessionId, a.StudentId }).IsUnique();
+        // 14. Index on SessionId To Fast DB Search
+        builder.Entity<Attendance>().HasIndex(a => a.SessionId);
+        // 15. Index on StudentId To Fast DB Search
+        builder.Entity<Attendance>().HasIndex(a => a.StudentId);
+
+        // 16. When Delete Group Delete There GroupSchedules
+        builder
+            .Entity<Group>()
+            .HasMany(g => g.Schedules)
+            .WithOne(s => s.Group)
+            .HasForeignKey(s => s.GroupId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // 17. When Delete Group Delete There Sessions
+        builder
+            .Entity<Group>()
+            .HasMany(g => g.Sessions)
+            .WithOne(s => s.Group)
+            .HasForeignKey(s => s.GroupId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // 18. When Delete Session Delete Attendances
+        builder
+            .Entity<Session>()
+            .HasMany(s => s.Attendances)
+            .WithOne(a => a.Session)
+            .HasForeignKey(a => a.SessionId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // 19. Delete Student Not Delete There Attendance
+        builder
+            .Entity<Student>()
+            .HasMany(st => st.Attendances)
+            .WithOne(a => a.Student)
+            .HasForeignKey(a => a.StudentId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // ! Soft Delete Constrains
         builder.Entity<Student>().HasQueryFilter(s => !s.IsDeleted);
