@@ -31,6 +31,7 @@ public class ApplicationDBContext(DbContextOptions<ApplicationDBContext> options
         builder.Entity<Tenant>().Property(t => t.Type).HasConversion<string>();
         builder.Entity<Group>().Property(g => g.PaymentType).HasConversion<string>();
         builder.Entity<AcademicTerm>().Property(t => t.Type).HasConversion<string>();
+        builder.Entity<StudentGroup>().Property(sg => sg.Status).HasConversion<string>();
 
         // 3. Dont repeat phone number at same tenant
         builder.Entity<AppUser>().HasIndex(u => new { u.TenantId, u.PhoneNumber }).IsUnique();

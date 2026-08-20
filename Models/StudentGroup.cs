@@ -1,5 +1,13 @@
 namespace api.Models;
 
+public enum EnrollmentStatus
+{
+    Pending = 1,
+    Active = 2,
+    Rejected = 3,
+    Archived = 4,
+}
+
 public class StudentGroup : BaseModel
 {
     // 1. Student
@@ -12,5 +20,5 @@ public class StudentGroup : BaseModel
 
     // 3. Subscription Details
     public decimal? CustomPrice { get; set; }
-    public bool IsActive { get; set; } = true;
+    public EnrollmentStatus Status { get; set; } = EnrollmentStatus.Active;
 }
