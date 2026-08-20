@@ -18,4 +18,6 @@ public class Session : BaseModel
     public Group Group { get; set; } = null!;
 
     public ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();
+
+    public ICollection<StudentInvoice> Invoices { get; set; } = new List<StudentInvoice>();
 }

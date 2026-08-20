@@ -21,6 +21,8 @@ public class ApplicationDBContext(DbContextOptions<ApplicationDBContext> options
     public DbSet<GroupSchedule> GroupSchedules { get; set; }
     public DbSet<Session> Sessions { get; set; }
     public DbSet<Attendance> Attendances { get; set; }
+    public DbSet<StudentInvoice> StudentInvoices { get; set; }
+    public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -38,6 +40,9 @@ public class ApplicationDBContext(DbContextOptions<ApplicationDBContext> options
         builder.Entity<GroupSchedule>().Property(c => c.DayOfWeek).HasConversion<string>();
         builder.Entity<Session>().Property(s => s.Status).HasConversion<string>();
         builder.Entity<Attendance>().Property(a => a.Status).HasConversion<string>();
+        builder.Entity<StudentInvoice>().Property(i => i.Type).HasConversion<string>();
+        builder.Entity<StudentInvoice>().Property(i => i.Status).HasConversion<string>();
+        builder.Entity<PaymentTransaction>().Property(p => p.Method).HasConversion<string>();
 
         // 3. Dont repeat phone number at same tenant
         builder.Entity<AppUser>().HasIndex(u => new { u.TenantId, u.PhoneNumber }).IsUnique();
@@ -142,6 +147,41 @@ public class ApplicationDBContext(DbContextOptions<ApplicationDBContext> options
             .HasMany(st => st.Attendances)
             .WithOne(a => a.Student)
             .HasForeignKey(a => a.StudentId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // 20. Fast Monthly Payment Search
+        builder.Entity<StudentInvoice>().HasIndex(i => new { i.GroupId, i.MonthKey });
+        builder.Entity<StudentInvoice>().HasIndex(i => new { i.StudentId, i.Status });
+        builder.Entity<StudentInvoice>().HasIndex(i => i.SessionId);
+        builder.Entity<PaymentTransaction>().HasIndex(t => t.InvoiceId);
+        builder.Entity<PaymentTransaction>().HasIndex(t => t.CreatedAt);
+        builder.Entity<PaymentTransaction>().HasIndex(t => t.ReceivedByUserId);
+
+        // 21. Dont repeat Invoice to same student on group in same month
+        builder
+            .Entity<StudentInvoice>()
+            .HasIndex(i => new
+            {
+                i.StudentId,
+                i.GroupId,
+                i.MonthKey,
+            })
+            .IsUnique()
+            .HasFilter("\"MonthKey\" IS NOT NULL");
+
+        // 22. Dont Repeat Same Invoice To Student In Same Session
+        builder
+            .Entity<StudentInvoice>()
+            .HasIndex(i => new { i.StudentId, i.SessionId })
+            .IsUnique()
+            .HasFilter("\"SessionId\" IS NOT NULL");
+
+        // 23.
+        builder
+            .Entity<PaymentTransaction>()
+            .HasOne(t => t.ReceivedByUser)
+            .WithMany()
+            .HasForeignKey(t => t.ReceivedByUserId)
             .OnDelete(DeleteBehavior.Restrict);
 
         // ! Soft Delete Constrains

@@ -42,4 +42,7 @@ public class Group : BaseModel
 
     // 7. Session
     public ICollection<Session> Sessions { get; set; } = new List<Session>();
+
+    // 8. StudentInvoice
+    public ICollection<StudentInvoice> Invoices { get; set; } = new List<StudentInvoice>();
 }
