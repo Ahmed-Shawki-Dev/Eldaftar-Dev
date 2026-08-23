@@ -13,4 +13,10 @@ public record ApiResponse<T>(
 
     public static ApiResponse<T> Fail(string message, List<string>? errors = null) =>
         new(false, message, Errors: errors);
+
+    public static ApiResponse<T> OkPaged(
+        T data,
+        PaginationMetadata pagination,
+        string message = ""
+    ) => new(true, message, Data: data, Pagination: pagination);
 }
