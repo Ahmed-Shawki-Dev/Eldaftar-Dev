@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using api.Models;
+using Microsoft.AspNetCore.Mvc.TagHelpers;
 
 namespace api.DTOs;
 
@@ -27,3 +28,25 @@ public record GroupSummaryDto(
     PaymentType PaymentType,
     List<CreateScheduleDto> Schedules
 );
+
+public record GroupParamsDto
+{
+    private const int MaxPageSize = 50;
+
+    private int _pageNumber = 1;
+    public int PageNumber
+    {
+        get => _pageNumber;
+        init => _pageNumber = value < 1 ? 1 : value;
+    }
+
+    private int _pageSize = 10;
+    public int PageSize
+    {
+        get => _pageSize;
+        init => _pageSize = value > MaxPageSize ? MaxPageSize : (value < 1 ? 10 : value);
+    }
+
+    public string? SearchTerm { get; init; }
+    public string? Grade { get; init; }
+}

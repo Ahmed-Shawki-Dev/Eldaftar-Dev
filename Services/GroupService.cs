@@ -80,4 +80,59 @@ public class GroupService(ApplicationDBContext context) : IGroupService
             "تم إنشاء المجموعة بنجاح."
         );
     }
+
+    // * 2. Get All Groups
+    public async Task<ApiResponse<List<GroupSummaryDto>>> GetGroupsAsync(
+        Guid tenantId,
+        Guid teacherId,
+        GroupParamsDto parameters
+    )
+    {
+        var query = context
+            .Groups.Include(g => g.Schedules)
+            .AsNoTracking()
+            .Where(g => g.TenantId == tenantId && g.TeacherId == teacherId);
+
+        // Search Filter With Grade Or Name
+        if (!string.IsNullOrWhiteSpace(parameters.SearchTerm))
+        {
+            var search = parameters.SearchTerm.Trim().ToLower();
+            query = query.Where(g =>
+                g.Name.ToLower().Contains(search) || g.Grade.ToLower().Contains(search)
+            );
+        }
+
+        // 3. Grade Filter
+        if (!string.IsNullOrWhiteSpace(parameters.Grade))
+        {
+            query = query.Where(g => g.Grade == parameters.Grade);
+        }
+
+        // 4. Count Total Records
+        var totalRecords = await query.CountAsync();
+
+        // 5. Apply Sorting & Pagination
+        var groups = await query
+            .OrderBy(g => g.Grade)
+            .ThenBy(g => g.Name)
+            .Skip((parameters.PageNumber - 1) * parameters.PageSize)
+            .Take(parameters.PageSize)
+            .ToListAsync();
+
+        // 6. Calculate Metadata
+        var totalPages = (int)Math.Ceiling(totalRecords / (double)parameters.PageSize);
+        var paginationMetadata = new PaginationMetadata(
+            parameters.PageNumber,
+            parameters.PageSize,
+            totalPages,
+            totalRecords
+        );
+
+        var groupsDto = groups.ToSummaryDtos();
+        return ApiResponse<List<GroupSummaryDto>>.OkPaged(
+            groupsDto,
+            paginationMetadata,
+            "تم جلب المجموعات بنجاح."
+        );
+    }
 }

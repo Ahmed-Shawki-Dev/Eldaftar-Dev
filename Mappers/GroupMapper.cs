@@ -64,4 +64,9 @@ public static class GroupMapper
             group.Schedules.ToDtos()
         );
     }
+
+    public static List<GroupSummaryDto> ToSummaryDtos(this IEnumerable<Group> groups)
+    {
+        return groups.Select(g => g.ToSummaryDto()).ToList();
+    }
 }

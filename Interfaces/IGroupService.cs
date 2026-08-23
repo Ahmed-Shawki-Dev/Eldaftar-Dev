@@ -9,4 +9,10 @@ public interface IGroupService
         Guid teacherId,
         CreateGroupDto dto
     );
+
+    Task<ApiResponse<List<GroupSummaryDto>>> GetGroupsAsync(
+        Guid tenantId,
+        Guid teacherId,
+        GroupParamsDto parameters
+    );
 }
