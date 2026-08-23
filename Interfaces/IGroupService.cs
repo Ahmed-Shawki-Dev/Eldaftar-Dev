@@ -17,6 +17,8 @@ public interface IGroupService
         UpdateGroupDto dto
     );
 
+    Task<ApiResponse<object>> SoftDeleteGroupAsync(Guid tenantId, Guid teacherId, Guid groupId);
+
     Task<ApiResponse<List<GroupSummaryDto>>> GetGroupsAsync(
         Guid tenantId,
         Guid teacherId,

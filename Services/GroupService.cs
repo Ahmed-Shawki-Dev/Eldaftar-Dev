@@ -20,7 +20,10 @@ public class GroupService(ApplicationDBContext context) : IGroupService
         var existingGroup = await context
             .Groups.IgnoreQueryFilters()
             .FirstOrDefaultAsync(g =>
-                g.TeacherId == teacherId && g.Grade == dto.Grade && g.Name == dto.Name
+                g.TenantId == tenantId
+                && g.TeacherId == teacherId
+                && g.Grade == dto.Grade
+                && g.Name == dto.Name
             );
 
         Group groupToReturn;
@@ -227,5 +230,49 @@ public class GroupService(ApplicationDBContext context) : IGroupService
             group.ToSummaryDto(),
             "تم تحديث بيانات المجموعة بنجاح."
         );
+    }
+
+    // * 5. Soft Delete Group
+    public async Task<ApiResponse<object>> SoftDeleteGroupAsync(
+        Guid tenantId,
+        Guid teacherId,
+        Guid groupId
+    )
+    {
+        var group = await context
+            .Groups.Include(g => g.Schedules)
+            .FirstOrDefaultAsync(g =>
+                g.Id == groupId && g.TeacherId == teacherId && g.TenantId == tenantId
+            );
+
+        if (group == null)
+        {
+            return ApiResponse<object>.Fail("المجموعة غير موجودة.");
+        }
+
+        // 2. Hard delete the schedules
+        if (group.Schedules.Count > 0)
+        {
+            context.GroupSchedules.RemoveRange(group.Schedules);
+        }
+
+        // 3. Archive active student enrollments
+        await context
+            .StudentGroups.Where(sg =>
+                sg.GroupId == groupId && sg.Status == EnrollmentStatus.Active
+            )
+            .ExecuteUpdateAsync(setter =>
+                setter.SetProperty(sg => sg.Status, EnrollmentStatus.Archived)
+            );
+
+        // 4. Soft delete the group
+        group.IsDeleted = true;
+        group.DeletedAt = DateTime.UtcNow;
+        group.IsActive = false;
+
+        // 5. Commit changes
+        await context.SaveChangesAsync();
+
+        return ApiResponse<object>.Ok(true, "تم حذف المجموعة بنجاح.");
     }
 }
