@@ -1,14 +1,20 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using api.Data;
 using api.Interfaces;
 using api.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 namespace api.Services;
 
-public class TokenService(IConfiguration config, UserManager<AppUser> userManager) : ITokenService
+public class TokenService(
+    IConfiguration config,
+    UserManager<AppUser> userManager,
+    ApplicationDBContext context
+) : ITokenService
 {
     public async Task<string> CreateTokenAsync(AppUser user, Tenant tenant)
     {
@@ -24,7 +30,32 @@ public class TokenService(IConfiguration config, UserManager<AppUser> userManage
         var roles = await userManager.GetRolesAsync(user);
         foreach (var role in roles)
         {
-            claims.Add(new Claim("role", role));
+            claims.Add(new Claim(ClaimTypes.Role, role));
+        }
+
+        if (roles.Contains("Teacher"))
+        {
+            var teacherId = await context
+                .Teachers.Where(t => t.UserId == user.Id && !t.IsDeleted)
+                .Select(t => t.Id)
+                .FirstOrDefaultAsync();
+
+            if (teacherId != Guid.Empty)
+            {
+                claims.Add(new Claim("teacherId", teacherId.ToString()));
+            }
+        }
+        else if (roles.Contains("Staff"))
+        {
+            var teacherId = await context
+                .Staffs.Where(s => s.UserId == user.Id)
+                .Select(s => s.TeacherId)
+                .FirstOrDefaultAsync();
+
+            if (teacherId != Guid.Empty)
+            {
+                claims.Add(new Claim("teacherId", teacherId.ToString()));
+            }
         }
 
         var secretKey =

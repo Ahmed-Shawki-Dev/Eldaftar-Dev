@@ -16,27 +16,30 @@ public class AuthService(
 {
     public async Task<ApiResponse<TenantAuthResponseDto>> RegisterTenantAsync(RegisterTenantDto dto)
     {
+        // 1. Check If Slug Exists
         var slugExist = await context.Tenants.AnyAsync(t => t.Slug == dto.Slug);
         if (slugExist)
-            return ApiResponse<TenantAuthResponseDto>.Fail("ال Slug مستخدم من قبل.");
+            return ApiResponse<TenantAuthResponseDto>.Fail("الـ Slug مستخدم من قبل.");
 
         await using var transaction = await context.Database.BeginTransactionAsync();
 
         try
         {
+            // 2. Create Tenant Record
             var tenant = new Tenant
             {
                 Id = Guid.NewGuid(),
                 Name = dto.CenterName,
-                Slug = dto.Slug,
+                Slug = dto.Slug.ToLower().Trim(),
                 Type = dto.TenantType,
             };
             context.Tenants.Add(tenant);
 
+            // 3. Create AppUser
             var user = new AppUser
             {
-                UserName = $"{tenant.Slug}_{dto.PhoneNumber}",
-                PhoneNumber = dto.PhoneNumber,
+                UserName = $"{tenant.Slug}_{dto.PhoneNumber.Trim()}",
+                PhoneNumber = dto.PhoneNumber.Trim(),
                 TenantId = tenant.Id,
             };
 
@@ -48,14 +51,9 @@ public class AuthService(
                 return ApiResponse<TenantAuthResponseDto>.Fail("فشل إنشاء الحساب", errors);
             }
 
-            const string adminRole = "CenterAdmin";
-            if (!await roleManager.RoleExistsAsync(adminRole))
-            {
-                await roleManager.CreateAsync(new IdentityRole<Guid>(adminRole));
-            }
-            await userManager.AddToRoleAsync(user, adminRole);
             tenant.UserId = user.Id;
 
+            // 4. Assign Single Role Based On Tenant Type
             if (dto.TenantType == TenantType.SoloTeacher)
             {
                 const string teacherRole = "Teacher";
@@ -65,6 +63,7 @@ public class AuthService(
                 }
                 await userManager.AddToRoleAsync(user, teacherRole);
 
+                // Create Teacher Entity
                 var teacher = new Teacher
                 {
                     Name = dto.FullName,
@@ -73,7 +72,17 @@ public class AuthService(
                 };
                 context.Teachers.Add(teacher);
             }
+            else
+            {
+                const string adminRole = "CenterAdmin";
+                if (!await roleManager.RoleExistsAsync(adminRole))
+                {
+                    await roleManager.CreateAsync(new IdentityRole<Guid>(adminRole));
+                }
+                await userManager.AddToRoleAsync(user, adminRole);
+            }
 
+            // 5. Commit Transaction
             await context.SaveChangesAsync();
             await transaction.CommitAsync();
 

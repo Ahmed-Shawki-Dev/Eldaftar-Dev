@@ -1,7 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
+using System.Text.Json.Serialization;
 using api.Data;
-using api.DTOs;
 using api.Interfaces;
 using api.Models;
 using api.Services;
@@ -13,7 +13,12 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder
+    .Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 builder.Services.AddOpenApi();
 
 // * EF Core Setup
@@ -46,9 +51,6 @@ builder
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            RoleClaimType = "role",
-            NameClaimType = "userId",
-
             ValidateIssuer = true,
             ValidIssuer = builder.Configuration["JWT:Issuer"],
 
@@ -91,6 +93,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 // * Define Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IGroupService, GroupService>();
 
 var app = builder.Build();
 
