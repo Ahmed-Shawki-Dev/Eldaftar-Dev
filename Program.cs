@@ -92,6 +92,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 // * Define Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IGroupService, GroupService>();
 
 var app = builder.Build();
 
