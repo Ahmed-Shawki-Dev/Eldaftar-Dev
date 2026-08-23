@@ -91,4 +91,37 @@ public class GroupController(IGroupService groupService) : BaseApiController
         // 3. Return 200 OK
         return Success(result.Data!, result.Message);
     }
+
+    // * 4.Update Existing Group
+    [HttpPut("{groupId:guid}")]
+    public async Task<IActionResult> UpdateGroup(
+        [FromRoute] string slug,
+        [FromRoute] Guid teacherId,
+        [FromRoute] Guid groupId,
+        [FromBody] UpdateGroupDto dto
+    )
+    {
+        // 1. Check Authorization & Ownership
+        var userContext = User.GetUserContext();
+        if (userContext == null || userContext.TeacherId != teacherId)
+        {
+            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا المدرس");
+        }
+
+        // 2. Execute Business Logic
+        var result = await groupService.UpdateGroupAsync(
+            userContext.TenantId,
+            teacherId,
+            groupId,
+            dto
+        );
+
+        if (!result.Success)
+        {
+            return BadReq(result.Message, result.Errors);
+        }
+
+        // 3. Return 200 OK
+        return Success(result.Data!, result.Message);
+    }
 }

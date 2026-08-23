@@ -10,6 +10,13 @@ public interface IGroupService
         CreateGroupDto dto
     );
 
+    Task<ApiResponse<GroupSummaryDto>> UpdateGroupAsync(
+        Guid tenantId,
+        Guid teacherId,
+        Guid groupId,
+        UpdateGroupDto dto
+    );
+
     Task<ApiResponse<List<GroupSummaryDto>>> GetGroupsAsync(
         Guid tenantId,
         Guid teacherId,

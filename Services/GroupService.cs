@@ -160,4 +160,72 @@ public class GroupService(ApplicationDBContext context) : IGroupService
             "تم جلب المجموعات بنجاح."
         );
     }
+
+    // * 4. Update Group
+    public async Task<ApiResponse<GroupSummaryDto>> UpdateGroupAsync(
+        Guid tenantId,
+        Guid teacherId,
+        Guid groupId,
+        UpdateGroupDto dto
+    )
+    {
+        var group = await context
+            .Groups.Include(g => g.Schedules)
+            .FirstOrDefaultAsync(g =>
+                g.TeacherId == teacherId && g.TenantId == tenantId && g.Id == groupId
+            );
+
+        if (group == null)
+        {
+            return ApiResponse<GroupSummaryDto>.Fail("لا توجد مجموعة للقيام بتعديلها.");
+        }
+
+        // 2. Check Name Conflict ONLY if Name or Grade actually changed
+        var isNameChanged = !string.Equals(
+            group.Name,
+            dto.Name,
+            StringComparison.OrdinalIgnoreCase
+        );
+        var isGradeChanged = !string.Equals(
+            group.Grade,
+            dto.Grade,
+            StringComparison.OrdinalIgnoreCase
+        );
+
+        if (isNameChanged || isGradeChanged)
+        {
+            var nameExists = await context.Groups.AnyAsync(g =>
+                g.TeacherId == teacherId
+                && g.Grade == dto.Grade
+                && g.Name == dto.Name
+                && g.Id != groupId
+            );
+
+            if (nameExists)
+            {
+                return ApiResponse<GroupSummaryDto>.Fail(
+                    "يوجد مجموعة أخرى بنفس الاسم لهذه المرحلة."
+                );
+            }
+        }
+
+        group.Grade = dto.Grade;
+        group.Name = dto.Name;
+        group.Price = dto.Price;
+        group.PaymentType = dto.PaymentType;
+        group.AcademicTermId = dto.AcademicTermId;
+        // Replace Schedules
+        context.GroupSchedules.RemoveRange(group.Schedules);
+        var newSchedules = dto.Schedules.ToEntities(group.Id);
+        await context.GroupSchedules.AddRangeAsync(newSchedules);
+        group.Schedules = newSchedules;
+
+        // Save Changes
+        await context.SaveChangesAsync();
+
+        return ApiResponse<GroupSummaryDto>.Ok(
+            group.ToSummaryDto(),
+            "تم تحديث بيانات المجموعة بنجاح."
+        );
+    }
 }
