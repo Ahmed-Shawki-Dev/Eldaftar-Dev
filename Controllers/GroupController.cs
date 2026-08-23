@@ -61,4 +61,34 @@ public class GroupController(IGroupService groupService) : BaseApiController
         // 3. Return 200 OK
         return Success(result.Data!, result.Pagination!, result.Message);
     }
+
+    // * 3.Get Group By Id
+    [HttpGet("{groupId:guid}")]
+    public async Task<IActionResult> GetGroupById(
+        [FromRoute] string slug,
+        [FromRoute] Guid teacherId,
+        [FromRoute] Guid groupId
+    )
+    {
+        // 1. Check Authorization & Ownership
+        var userContext = User.GetUserContext();
+        if (userContext == null || userContext.TeacherId != teacherId)
+        {
+            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا المدرس");
+        }
+
+        // 2. Execute Business Logic
+        var result = await groupService.GetGroupByIdAsync(
+            userContext.TenantId,
+            userContext.TeacherId,
+            groupId
+        );
+        if (!result.Success)
+        {
+            return NotFoundRes(result.Message);
+        }
+
+        // 3. Return 200 OK
+        return Success(result.Data!, result.Message);
+    }
 }

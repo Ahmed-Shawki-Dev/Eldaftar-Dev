@@ -81,7 +81,32 @@ public class GroupService(ApplicationDBContext context) : IGroupService
         );
     }
 
-    // * 2. Get All Groups
+    // * 2. Get Groub By Id
+    public async Task<ApiResponse<GroupSummaryDto>> GetGroupByIdAsync(
+        Guid tenantId,
+        Guid teacherId,
+        Guid groupId
+    )
+    {
+        var group = await context
+            .Groups.Include(g => g.Schedules)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(g =>
+                g.Id == groupId && g.TenantId == tenantId && g.TeacherId == teacherId
+            );
+
+        if (group == null)
+        {
+            return ApiResponse<GroupSummaryDto>.Fail("المجموعة غير موجودة.");
+        }
+
+        return ApiResponse<GroupSummaryDto>.Ok(
+            group.ToSummaryDto(),
+            "تم جلب بيانات المجموعة بنجاح."
+        );
+    }
+
+    // * 3. Get All Groups
     public async Task<ApiResponse<List<GroupSummaryDto>>> GetGroupsAsync(
         Guid tenantId,
         Guid teacherId,
