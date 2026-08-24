@@ -2,7 +2,7 @@ using System.Security.Claims;
 
 namespace api.Helpers;
 
-public record UserContext(Guid TenantId, Guid TeacherId);
+public record UserContext(Guid TenantId, Guid TeacherId, string TenantSlug);
 
 public static class UserClaimsExtensions
 {
@@ -11,13 +11,15 @@ public static class UserClaimsExtensions
     {
         var tenantClaim = user.FindFirst("tenantId")?.Value;
         var teacherClaim = user.FindFirst("teacherId")?.Value;
+        var slugClaim = user.FindFirst("tenantSlug")?.Value;
 
         if (
             Guid.TryParse(tenantClaim, out var tenantId)
             && Guid.TryParse(teacherClaim, out var teacherId)
+            && !string.IsNullOrWhiteSpace(slugClaim)
         )
         {
-            return new UserContext(tenantId, teacherId);
+            return new UserContext(tenantId, teacherId, slugClaim);
         }
 
         return null;

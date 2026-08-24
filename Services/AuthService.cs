@@ -40,7 +40,7 @@ public class AuthService(
             // 3. Create AppUser
             var user = new AppUser
             {
-                UserName = $"{tenant.Slug}_{dto.PhoneNumber.Trim()}",
+                UserName = $"{tenant.Id}_{dto.PhoneNumber.Trim()}",
                 PhoneNumber = dto.PhoneNumber.Trim(),
                 TenantId = tenant.Id,
             };
@@ -116,31 +116,25 @@ public class AuthService(
     public async Task<ApiResponse<LoginResponseDto>> LoginAsync(string slug, LoginDto dto)
     {
         var normalizedSlug = slug.ToLower().Trim();
-        var compositeUserName = $"{normalizedSlug}_{dto.PhoneNumber.Trim()}";
-        var user = await userManager.FindByNameAsync(compositeUserName);
-        if (user == null)
-        {
-            return ApiResponse<LoginResponseDto>.Fail("رقم الهاتف أو كلمة المرور غير صحيحة.");
-        }
+        var cleanPhone = dto.PhoneNumber.Trim();
 
-        var isPasswordValid = await userManager.CheckPasswordAsync(user, dto.Password);
-
-        if (!isPasswordValid)
-        {
-            return ApiResponse<LoginResponseDto>.Fail("رقم الهاتف أو كلمة المرور غير صحيحة.");
-        }
-
-        var tenant = await context.Tenants.FirstOrDefaultAsync(t => t.Id == user.TenantId);
-
+        // 1. Get Tenant
+        var tenant = await context.Tenants.FirstOrDefaultAsync(t => t.Slug == normalizedSlug);
         if (tenant == null)
-        {
-            return ApiResponse<LoginResponseDto>.Fail("السنتر المرتبط بهذا الحساب غير موجود.");
-        }
+            return ApiResponse<LoginResponseDto>.Fail("السنتر غير موجود.");
 
+        // 2. Get Username And Check
+        var compositeUserName = $"{tenant.Id}_{cleanPhone}";
+        var user = await userManager.FindByNameAsync(compositeUserName);
+
+        if (user == null || !await userManager.CheckPasswordAsync(user, dto.Password))
+            return ApiResponse<LoginResponseDto>.Fail("رقم الهاتف أو كلمة المرور غير صحيحة.");
+
+        // 3. Create And Retrieve Token
         var token = await tokenService.CreateTokenAsync(user, tenant);
-
-        var res = new LoginResponseDto(token);
-
-        return ApiResponse<LoginResponseDto>.Ok(res, "تم تسجيل الدخول بنجاح.");
+        return ApiResponse<LoginResponseDto>.Ok(
+            new LoginResponseDto(token),
+            "تم تسجيل الدخول بنجاح."
+        );
     }
 }

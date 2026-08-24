@@ -184,11 +184,20 @@ public class ApplicationDBContext(DbContextOptions<ApplicationDBContext> options
             .HasForeignKey(t => t.ReceivedByUserId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // 24. Delete AppUser When Delete Tenant
+        builder
+            .Entity<AppUser>()
+            .HasOne<Tenant>()
+            .WithMany()
+            .HasForeignKey(u => u.TenantId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         // ! Soft Delete Constrains
         builder.Entity<Student>().HasQueryFilter(s => !s.IsDeleted);
         builder.Entity<Group>().HasQueryFilter(g => !g.IsDeleted);
         builder.Entity<AcademicTerm>().HasQueryFilter(t => !t.IsDeleted);
         builder.Entity<Teacher>().HasQueryFilter(t => !t.IsDeleted);
+        builder.Entity<StudentGroup>().HasQueryFilter(sg => sg.Status == EnrollmentStatus.Active);
     }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)

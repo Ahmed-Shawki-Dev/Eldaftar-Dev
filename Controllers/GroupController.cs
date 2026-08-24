@@ -20,9 +20,13 @@ public class GroupController(IGroupService groupService) : BaseApiController
     {
         // 1. Check Authorization & Ownership
         var userContext = User.GetUserContext();
-        if (userContext == null || userContext.TeacherId != teacherId)
+        if (
+            userContext == null
+            || userContext.TeacherId != teacherId
+            || userContext.TenantSlug != slug
+        )
         {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا المدرس");
+            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس");
         }
 
         // 2. Execute Business Logic
@@ -50,9 +54,13 @@ public class GroupController(IGroupService groupService) : BaseApiController
     {
         // 1. Check Authorization & Ownership
         var userContext = User.GetUserContext();
-        if (userContext == null || userContext.TeacherId != teacherId)
+        if (
+            userContext == null
+            || userContext.TeacherId != teacherId
+            || userContext.TenantSlug != slug
+        )
         {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا المدرس");
+            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس");
         }
 
         // 2. Execute Business Logic
@@ -72,9 +80,13 @@ public class GroupController(IGroupService groupService) : BaseApiController
     {
         // 1. Check Authorization & Ownership
         var userContext = User.GetUserContext();
-        if (userContext == null || userContext.TeacherId != teacherId)
+        if (
+            userContext == null
+            || userContext.TeacherId != teacherId
+            || userContext.TenantSlug != slug
+        )
         {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا المدرس");
+            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس");
         }
 
         // 2. Execute Business Logic
@@ -103,9 +115,13 @@ public class GroupController(IGroupService groupService) : BaseApiController
     {
         // 1. Check Authorization & Ownership
         var userContext = User.GetUserContext();
-        if (userContext == null || userContext.TeacherId != teacherId)
+        if (
+            userContext == null
+            || userContext.TeacherId != teacherId
+            || userContext.TenantSlug != slug
+        )
         {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا المدرس");
+            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس");
         }
 
         // 2. Execute Business Logic
@@ -135,9 +151,13 @@ public class GroupController(IGroupService groupService) : BaseApiController
     {
         // 1. Check Authorization & Ownership
         var userContext = User.GetUserContext();
-        if (userContext == null || userContext.TeacherId != teacherId)
+        if (
+            userContext == null
+            || userContext.TeacherId != teacherId
+            || userContext.TenantSlug != slug
+        )
         {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا المدرس");
+            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس");
         }
 
         // 2. Execute Business Logic
