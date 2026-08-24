@@ -9,6 +9,12 @@ public interface IStudentService
         Guid teacherId,
         CreateStudentDto dto
     );
+    Task<ApiResponse<StudentDto>> UpdateStudentAsync(
+        Guid tenantId,
+        Guid teacherId,
+        Guid StudentId,
+        UpdateStudentDto dto
+    );
     Task<ApiResponse<List<StudentDto>>> GetAllStudentsAsync(
         Guid tenantId,
         Guid teacherId,

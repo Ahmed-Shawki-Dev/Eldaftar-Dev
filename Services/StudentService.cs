@@ -187,4 +187,72 @@ public class StudentService(ApplicationDBContext context) : IStudentService
         var studentDto = studentGroup.ToDto();
         return ApiResponse<StudentDto>.Ok(studentDto, "تم جلب بيانات الطالب بنجاح.");
     }
+
+    public async Task<ApiResponse<StudentDto>> UpdateStudentAsync(
+        Guid tenantId,
+        Guid teacherId,
+        Guid studentId,
+        UpdateStudentDto dto
+    )
+    {
+        // 1. Fetch Student Enrollment with Tracking
+        var studentGroup = await context
+            .StudentGroups.Include(sg => sg.Student)
+            .Include(sg => sg.Group)
+            .FirstOrDefaultAsync(sg =>
+                sg.StudentId == studentId
+                && sg.Group.TeacherId == teacherId
+                && sg.Group.TenantId == tenantId
+            );
+
+        if (studentGroup == null)
+        {
+            return ApiResponse<StudentDto>.Fail("الطالب غير موجود أو لا ينتمي لهذا المدرس.");
+        }
+
+        var student = studentGroup.Student;
+
+        // 2. Check Phone Uniqueness Only If Phone Actually Changed
+        var cleanPhone = !string.IsNullOrWhiteSpace(dto.Phone) ? dto.Phone.Trim() : null;
+        if (!string.IsNullOrWhiteSpace(cleanPhone) && cleanPhone != student.Phone)
+        {
+            var isPhoneExist = await context.Students.AnyAsync(s =>
+                s.TenantId == tenantId && s.Phone == cleanPhone && s.Id != studentId
+            );
+
+            if (isPhoneExist)
+            {
+                return ApiResponse<StudentDto>.Fail("رقم هاتف الطالب مسجل مسبقاً لطالب آخر.");
+            }
+        }
+
+        // 3. Verify New Group Ownership If Group Changed
+        if (dto.GroupId != studentGroup.GroupId)
+        {
+            var targetGroup = await context.Groups.FirstOrDefaultAsync(g =>
+                g.Id == dto.GroupId && g.TeacherId == teacherId && g.TenantId == tenantId
+            );
+
+            if (targetGroup == null)
+            {
+                return ApiResponse<StudentDto>.Fail(
+                    "المجموعة الجديدة غير صالحة أو لا تتبع هذا المدرس."
+                );
+            }
+
+            studentGroup.GroupId = dto.GroupId;
+            studentGroup.Group = targetGroup;
+        }
+
+        // 4. Update Student & Enrollment Properties
+        student.Name = dto.Name.Trim();
+        student.ParentPhone = dto.ParentPhone.Trim();
+        student.Phone = cleanPhone;
+        studentGroup.CustomPrice = dto.CustomPrice;
+
+        // 5. EF Core Change Tracker
+        await context.SaveChangesAsync();
+
+        return ApiResponse<StudentDto>.Ok(studentGroup.ToDto(), "تم تحديث بيانات الطالب بنجاح.");
+    }
 }

@@ -107,4 +107,40 @@ public class StudentController(IStudentService studentService) : BaseApiControll
         // 3. Return 200 OK
         return Success(result.Data!, result.Message);
     }
+
+    [HttpPut("{studentId:guid}")]
+    public async Task<IActionResult> UpdateStudent(
+        [FromRoute] string slug,
+        [FromRoute] Guid teacherId,
+        [FromRoute] Guid studentId,
+        [FromBody] UpdateStudentDto dto
+    )
+    {
+        // 1. Check Authorization & Ownership
+        var userContext = User.GetUserContext();
+        if (
+            userContext == null
+            || userContext.TeacherId != teacherId
+            || userContext.TenantSlug != slug
+        )
+        {
+            return ForbiddenRes("غير مصرح لك بتعديل بيانات هذا الطالب");
+        }
+
+        // 2. Execute Business Logic
+        var result = await studentService.UpdateStudentAsync(
+            userContext.TenantId,
+            userContext.TeacherId,
+            studentId,
+            dto
+        );
+
+        if (!result.Success)
+        {
+            return BadReq(result.Message, result.Errors);
+        }
+
+        // 3. Return 200 OK with updated data
+        return Success(result.Data!, result.Message);
+    }
 }
