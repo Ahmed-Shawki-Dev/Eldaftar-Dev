@@ -143,4 +143,38 @@ public class StudentController(IStudentService studentService) : BaseApiControll
         // 3. Return 200 OK with updated data
         return Success(result.Data!, result.Message);
     }
+
+    [HttpDelete("{studentId:guid}")]
+    public async Task<IActionResult> SoftDeleteStudent(
+        [FromRoute] string slug,
+        [FromRoute] Guid teacherId,
+        [FromRoute] Guid studentId
+    )
+    {
+        // 1. Check Authorization & Ownership
+        var userContext = User.GetUserContext();
+        if (
+            userContext == null
+            || userContext.TeacherId != teacherId
+            || userContext.TenantSlug != slug
+        )
+        {
+            return ForbiddenRes("غير مصرح لك بحذف هذا الطالب");
+        }
+
+        // 2. Execute Business Logic
+        var result = await studentService.SoftDeleteStudentAsync(
+            userContext.TenantId,
+            userContext.TeacherId,
+            studentId
+        );
+
+        if (!result.Success)
+        {
+            return BadReq(result.Message, result.Errors);
+        }
+
+        // 3. Return 200 OK
+        return Success(result.Message);
+    }
 }

@@ -4,17 +4,6 @@ namespace api.Interfaces;
 
 public interface IStudentService
 {
-    Task<ApiResponse<StudentDto>> CreateStudentAsync(
-        Guid tenantId,
-        Guid teacherId,
-        CreateStudentDto dto
-    );
-    Task<ApiResponse<StudentDto>> UpdateStudentAsync(
-        Guid tenantId,
-        Guid teacherId,
-        Guid StudentId,
-        UpdateStudentDto dto
-    );
     Task<ApiResponse<List<StudentDto>>> GetAllStudentsAsync(
         Guid tenantId,
         Guid teacherId,
@@ -26,4 +15,19 @@ public interface IStudentService
         Guid teacherId,
         Guid studentId
     );
+
+    Task<ApiResponse<StudentDto>> CreateStudentAsync(
+        Guid tenantId,
+        Guid teacherId,
+        CreateStudentDto dto
+    );
+
+    Task<ApiResponse<StudentDto>> UpdateStudentAsync(
+        Guid tenantId,
+        Guid teacherId,
+        Guid StudentId,
+        UpdateStudentDto dto
+    );
+
+    Task<ApiResponse<object>> SoftDeleteStudentAsync(Guid tenantId, Guid teacherId, Guid StudentId);
 }

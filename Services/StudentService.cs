@@ -255,4 +255,31 @@ public class StudentService(ApplicationDBContext context) : IStudentService
 
         return ApiResponse<StudentDto>.Ok(studentGroup.ToDto(), "تم تحديث بيانات الطالب بنجاح.");
     }
+
+    public async Task<ApiResponse<object>> SoftDeleteStudentAsync(
+        Guid tenantId,
+        Guid teacherId,
+        Guid studentId
+    )
+    {
+        // 1. Fetch Student Enrollment For This Teacher
+        var studentGroup = await context.StudentGroups.FirstOrDefaultAsync(sg =>
+            sg.StudentId == studentId
+            && sg.Group.TeacherId == teacherId
+            && sg.Group.TenantId == tenantId
+        );
+
+        // 2. Not Found Check
+        if (studentGroup == null)
+        {
+            return ApiResponse<object>.Fail("الطالب غير موجود أو لا ينتمي لهذا المدرس.");
+        }
+
+        // 3. Soft Delete / Archive Enrollment
+        studentGroup.Status = EnrollmentStatus.Archived;
+
+        await context.SaveChangesAsync();
+
+        return ApiResponse<object>.Ok(new { }, "تم حذف الطالب من المجموعة بنجاح.");
+    }
 }
