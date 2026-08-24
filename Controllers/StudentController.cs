@@ -41,4 +41,36 @@ public class StudentController(IStudentService studentService) : BaseApiControll
         // 3. Return 200 Created
         return Success(result.Data!, result.Message);
     }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAllStudents(
+        [FromRoute] string slug,
+        [FromRoute] Guid teacherId,
+        [FromQuery] StudentParamsDto parameters
+    )
+    {
+        // 1. Check Authorization & Ownership
+        var userContext = User.GetUserContext();
+        if (
+            userContext == null
+            || userContext.TeacherId != teacherId
+            || userContext.TenantSlug != slug
+        )
+        {
+            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس");
+        }
+
+        // 2. Execute Business Logic
+        var result = await studentService.GetAllStudentsAsync(
+            userContext.TenantId,
+            userContext.TeacherId,
+            parameters
+        );
+
+        if (!result.Success)
+            return BadReq(result.Message, result.Errors);
+
+        // 3. Return 200 Created
+        return Success(result.Data!, result.Pagination!, result.Message);
+    }
 }

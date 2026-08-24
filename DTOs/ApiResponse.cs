@@ -1,4 +1,11 @@
-public record PaginationMetadata(int PageNumber, int PageSize, int TotalPages, int TotalRecords);
+public record PaginationMetadata(int PageNumber, int PageSize, int TotalPages, int TotalRecords)
+{
+    public static PaginationMetadata Create(int pageNumber, int pageSize, int totalRecords)
+    {
+        var totalPages = (int)Math.Ceiling(totalRecords / (double)pageSize);
+        return new PaginationMetadata(pageNumber, pageSize, totalPages, totalRecords);
+    }
+}
 
 public record ApiResponse<T>(
     bool Success,

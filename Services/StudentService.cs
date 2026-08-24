@@ -106,4 +106,58 @@ public class StudentService(ApplicationDBContext context) : IStudentService
 
         return ApiResponse<StudentDto>.Ok(student.ToDto(group), "تم تسجيل الطالب بنجاح.");
     }
+
+    public async Task<ApiResponse<List<StudentDto>>> GetAllStudentsAsync(
+        Guid tenantId,
+        Guid teacherId,
+        StudentParamsDto parameters
+    )
+    {
+        // 1. Base Query
+        var query = context
+            .StudentGroups.AsNoTracking()
+            .Where(sg => sg.Group.TeacherId == teacherId && sg.Group.TenantId == tenantId);
+
+        // 2. Group Filter
+        if (parameters.GroupId.HasValue)
+        {
+            query = query.Where(sg => sg.GroupId == parameters.GroupId.Value);
+        }
+
+        // 3. Search Filter
+        if (!string.IsNullOrWhiteSpace(parameters.SearchTerm))
+        {
+            var term = parameters.SearchTerm.Trim();
+            query = query.Where(sg =>
+                sg.Student.Name.Contains(term)
+                || (sg.Student.Phone != null && sg.Student.Phone.Contains(term))
+                || sg.Student.StudentCode.Contains(term)
+                || sg.Student.ParentPhone.Contains(term)
+            );
+        }
+
+        // 4. Total Count for Pagination Metadata
+        var totalRecords = await query.CountAsync();
+
+        // 5. Fetch Paged Data with Includes
+        var studentGroups = await query
+            .Include(sg => sg.Student)
+            .Include(sg => sg.Group)
+            .OrderByDescending(sg => sg.CreatedAt)
+            .Skip((parameters.PageNumber - 1) * parameters.PageSize)
+            .Take(parameters.PageSize)
+            .ToListAsync();
+
+        // 6. Map to DTOs
+        var students = studentGroups.ToDtos();
+
+        // 7. Calculate Pagination Metadata
+        var pagination = PaginationMetadata.Create(
+            parameters.PageNumber,
+            parameters.PageSize,
+            totalRecords
+        );
+
+        return ApiResponse<List<StudentDto>>.OkPaged(students, pagination, "تم جلب الطلاب بنجاح.");
+    }
 }

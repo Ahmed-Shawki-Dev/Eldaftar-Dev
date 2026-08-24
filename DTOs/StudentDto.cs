@@ -25,3 +25,25 @@ public record StudentDto(
     Guid GroupId,
     string GroupName
 );
+
+public record StudentParamsDto
+{
+    private const int MaxPageSize = 50;
+
+    private int _pageNumber = 1;
+    public int PageNumber
+    {
+        get => _pageNumber;
+        init => _pageNumber = value < 1 ? 1 : value;
+    }
+
+    private int _pageSize = 10;
+    public int PageSize
+    {
+        get => _pageSize;
+        init => _pageSize = value > MaxPageSize ? MaxPageSize : (value < 1 ? 10 : value);
+    }
+
+    public string? SearchTerm { get; init; }
+    public Guid? GroupId { get; init; }
+}

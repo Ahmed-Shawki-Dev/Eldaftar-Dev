@@ -14,7 +14,7 @@ public static class StudentMapper
             StudentCode = studentCode,
             Name = dto.Name.Trim(),
             ParentPhone = dto.ParentPhone.Trim(),
-            Phone = !string.IsNullOrWhiteSpace(dto.Phone) ? dto.Phone.Trim() : null, // ✅ ضيف السطر ده هنا
+            Phone = !string.IsNullOrWhiteSpace(dto.Phone) ? dto.Phone.Trim() : null,
             StudentGroups = new List<StudentGroup>
             {
                 new StudentGroup
@@ -39,5 +39,23 @@ public static class StudentMapper
             group.Id,
             $"{group.Grade} - {group.Name}"
         );
+    }
+
+    public static StudentDto ToDto(this StudentGroup sg)
+    {
+        return new StudentDto(
+            sg.Student.Id,
+            sg.Student.StudentCode,
+            sg.Student.Name,
+            sg.Student.ParentPhone,
+            sg.Student.Phone,
+            sg.Group.Id,
+            $"{sg.Group.Grade} - {sg.Group.Name}"
+        );
+    }
+
+    public static List<StudentDto> ToDtos(this List<StudentGroup> studentGroups)
+    {
+        return studentGroups.Select(sg => sg.ToDto()).ToList();
     }
 }

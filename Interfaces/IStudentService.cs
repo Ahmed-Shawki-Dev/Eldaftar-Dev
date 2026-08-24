@@ -9,4 +9,9 @@ public interface IStudentService
         Guid teacherId,
         CreateStudentDto dto
     );
+    Task<ApiResponse<List<StudentDto>>> GetAllStudentsAsync(
+        Guid tenantId,
+        Guid teacherId,
+        StudentParamsDto parameters
+    );
 }
