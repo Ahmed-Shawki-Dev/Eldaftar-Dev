@@ -160,4 +160,31 @@ public class StudentService(ApplicationDBContext context) : IStudentService
 
         return ApiResponse<List<StudentDto>>.OkPaged(students, pagination, "تم جلب الطلاب بنجاح.");
     }
+
+    public async Task<ApiResponse<StudentDto>> GetStudentByIdAsync(
+        Guid tenantId,
+        Guid teacherId,
+        Guid studentId
+    )
+    {
+        // * Get Student Enrollment With Teacher
+        var studentGroup = await context
+            .StudentGroups.AsNoTracking()
+            .Include(sg => sg.Student)
+            .Include(sg => sg.Group)
+            .FirstOrDefaultAsync(sg =>
+                sg.StudentId == studentId
+                && sg.Group.TeacherId == teacherId
+                && sg.Group.TenantId == tenantId
+            );
+        // * Check Student
+        if (studentGroup == null)
+        {
+            return ApiResponse<StudentDto>.Fail("الطالب غير موجود أو لا يتبع هذا المدرس.");
+        }
+
+        // * Convert To Dto
+        var studentDto = studentGroup.ToDto();
+        return ApiResponse<StudentDto>.Ok(studentDto, "تم جلب بيانات الطالب بنجاح.");
+    }
 }
