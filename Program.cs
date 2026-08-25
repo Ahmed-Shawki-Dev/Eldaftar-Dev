@@ -95,6 +95,7 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<IStaffService, StaffService>();
+builder.Services.AddScoped<IExamService, ExamService>();
 
 var app = builder.Build();
 
