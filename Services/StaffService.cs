@@ -199,13 +199,19 @@ public class StaffService(
             return ApiResponse<object>.Fail("السكرتيرة غير موجودة أو لا تتبع هذا المدرس.");
         }
 
-        // Delete User From AspNetUsers
-        await userManager.DeleteAsync(staff.User);
-
-        // Delete Staff Entity
-        context.Staffs.Remove(staff);
-
-        await context.SaveChangesAsync();
+        if (staff.User != null)
+        {
+            var result = await userManager.DeleteAsync(staff.User);
+            if (!result.Succeeded)
+            {
+                return ApiResponse<object>.Fail("حدث خطأ أثناء حذف حساب السكرتيرة.");
+            }
+        }
+        else
+        {
+            context.Staffs.Remove(staff);
+            await context.SaveChangesAsync();
+        }
 
         return ApiResponse<object>.Ok(new { }, "تم حذف السكرتيرة بنجاح.");
     }
