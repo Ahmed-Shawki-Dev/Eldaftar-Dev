@@ -15,6 +15,19 @@ public interface IExamService
 
     Task<ApiResponse<ExamDto>> GetExamByIdAsync(Guid tenantId, Guid teacherId, Guid examId);
 
+    Task<ApiResponse<List<ExamSheetDto>>> GetExamSheetAsync(
+        Guid tenantId,
+        Guid teacherId,
+        Guid examId
+    );
+
+    Task<ApiResponse<object>> SaveBulkExamSheetAsync(
+        Guid tenantId,
+        Guid teacherId,
+        Guid examId,
+        UpdateExamSheetDto dto
+    );
+
     Task<ApiResponse<ExamDto>> UpdateExamAsync(
         Guid tenantId,
         Guid teacherId,

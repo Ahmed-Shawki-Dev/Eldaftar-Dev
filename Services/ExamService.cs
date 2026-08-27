@@ -192,4 +192,133 @@ public class ExamService(ApplicationDBContext context) : IExamService
 
         return ApiResponse<object>.Ok(new { }, "تم حذف الامتحان بنجاح.");
     }
+
+    // Exam Sheet
+    public async Task<ApiResponse<List<ExamSheetDto>>> GetExamSheetAsync(
+        Guid tenantId,
+        Guid teacherId,
+        Guid examId
+    )
+    {
+        var exam = await context
+            .Exams.AsNoTracking()
+            .FirstOrDefaultAsync(e =>
+                e.Id == examId && e.TeacherId == teacherId && e.Teacher.TenantId == tenantId
+            );
+
+        if (exam == null)
+        {
+            return ApiResponse<List<ExamSheetDto>>.Fail("الإمتحان غير موجود");
+        }
+
+        // 1. Start Query
+        var query = context.StudentGroups.AsNoTracking();
+
+        // 2. Filter The Exam Type
+        if (exam.GroupId.HasValue)
+        {
+            query = query.Where(sg => sg.GroupId == exam.GroupId.Value);
+        }
+        else
+        {
+            query = query.Where(sg =>
+                sg.Group.TeacherId == teacherId && sg.Group.Grade == exam.Grade
+            );
+        }
+
+        // Get Exam Sheet
+        var examSheet = await query
+            .Select(sg => new
+            {
+                StudentId = sg.StudentId,
+                StudentName = sg.Student.Name,
+                Score = sg
+                    .Student.ExamResults.Where(er => er.ExamId == examId)
+                    .Select(er => (decimal?)er.Score)
+                    .FirstOrDefault(),
+            })
+            .Select(x => new ExamSheetDto(
+                x.StudentId,
+                x.StudentName,
+                x.Score,
+                x.Score.HasValue ? (x.Score.Value / exam.MaxScore) * 100 : null
+            ))
+            .ToListAsync();
+
+        return ApiResponse<List<ExamSheetDto>>.Ok(examSheet, "تم إرجاع شيت الإمتحان بنجاح.");
+    }
+
+    public async Task<ApiResponse<object>> SaveBulkExamSheetAsync(
+        Guid tenantId,
+        Guid teacherId,
+        Guid examId,
+        UpdateExamSheetDto dto
+    )
+    {
+        // 1. Fetch exam metadata for validation
+        var exam = await context
+            .Exams.AsNoTracking()
+            .FirstOrDefaultAsync(e =>
+                e.Id == examId && e.TeacherId == teacherId && e.Teacher.TenantId == tenantId
+            );
+
+        if (exam == null)
+        {
+            return ApiResponse<object>.Fail("الإمتحان غير موجود أو لا تملك صلاحية الوصول إليه.");
+        }
+
+        // 2. Ensure no score exceeds the maximum allowed or drops below zero
+        var hasInvalidScores = dto.StudentsScores.Any(sc =>
+            sc.Score.HasValue && (sc.Score.Value > exam.MaxScore || sc.Score.Value < 0)
+        );
+
+        if (hasInvalidScores)
+        {
+            return ApiResponse<object>.Fail(
+                $"يوجد درجات غير صحيحة! الدرجة يجب أن تكون بين 0 و {exam.MaxScore}"
+            );
+        }
+
+        // 3. Load existing results into a Dictionary
+        var existingResults = await context
+            .ExamResults.Where(er => er.ExamId == examId)
+            .ToDictionaryAsync(er => er.StudentId);
+
+        // 4. Process the bulk operation
+        foreach (var studentScore in dto.StudentsScores)
+        {
+            bool exists = existingResults.TryGetValue(
+                studentScore.StudentId,
+                out var existingRecord
+            );
+
+            if (!exists && studentScore.Score.HasValue)
+            {
+                // Student has no existing record => Insert
+                context.ExamResults.Add(
+                    new ExamResult
+                    {
+                        ExamId = examId,
+                        StudentId = studentScore.StudentId,
+                        Score = studentScore.Score.Value,
+                    }
+                );
+            }
+            else if (exists && studentScore.Score.HasValue)
+            {
+                // Student has an existing record and a new score is provided => Update
+                existingRecord!.Score = studentScore.Score.Value;
+            }
+            else if (exists && !studentScore.Score.HasValue)
+            {
+                // Student has an existing record but the score is nullified => Delete
+                context.ExamResults.Remove(existingRecord!);
+            }
+        }
+
+        // 5. Commit all tracked changes to the database in a single transaction
+        await context.SaveChangesAsync();
+
+        return ApiResponse<object>.Ok(new { }, "تم حفظ الشيت بنجاح.");
+    }
 }

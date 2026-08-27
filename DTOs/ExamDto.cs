@@ -37,6 +37,12 @@ public record ExamDto(
     DateTimeOffset CreatedAt
 );
 
+public record ExamSheetDto(Guid StudentId, string StudentName, decimal? Score, decimal? Percentage);
+
+public record StudentScoreDto(Guid StudentId, decimal? Score);
+
+public record UpdateExamSheetDto(List<StudentScoreDto> StudentsScores);
+
 public record ExamParamsDto
 {
     private const int MaxPageSize = 50;

@@ -181,4 +181,74 @@ public class ExamController(IExamService examService) : BaseApiController
         // 3. Return 200 Created
         return Success(result.Message);
     }
+
+    // * 6. Get Exam Sheet
+    [HttpGet("{examId:guid}/sheet")]
+    public async Task<IActionResult> GetExamSheet(
+        [FromRoute] string slug,
+        [FromRoute] Guid teacherId,
+        [FromRoute] Guid examId
+    )
+    {
+        // 1. Check Authorization & Ownership
+        var userContext = User.GetUserContext();
+        if (
+            userContext == null
+            || userContext.TeacherId != teacherId
+            || userContext.TenantSlug != slug
+        )
+        {
+            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس");
+        }
+
+        // 2. Execute Business Logic
+        var result = await examService.GetExamSheetAsync(
+            userContext.TenantId,
+            userContext.TeacherId,
+            examId
+        );
+        if (!result.Success)
+        {
+            return BadReq(result.Message, result.Errors);
+        }
+
+        // 3. Return 200 Created
+        return Success(result.Data!, result.Message);
+    }
+
+    // * 7. Put Exam Sheet
+    [HttpPost("{examId:guid}/sheet")]
+    public async Task<IActionResult> UpdateExamSheet(
+        [FromRoute] string slug,
+        [FromRoute] Guid teacherId,
+        [FromRoute] Guid examId,
+        [FromBody] UpdateExamSheetDto dto
+    )
+    {
+        // 1. Check Authorization & Ownership
+        var userContext = User.GetUserContext();
+        if (
+            userContext == null
+            || userContext.TeacherId != teacherId
+            || userContext.TenantSlug != slug
+        )
+        {
+            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس");
+        }
+
+        // 2. Execute Business Logic
+        var result = await examService.SaveBulkExamSheetAsync(
+            userContext.TenantId,
+            userContext.TeacherId,
+            examId,
+            dto
+        );
+        if (!result.Success)
+        {
+            return BadReq(result.Message, result.Errors);
+        }
+
+        // 3. Return 200 Created
+        return Success(result.Message);
+    }
 }
