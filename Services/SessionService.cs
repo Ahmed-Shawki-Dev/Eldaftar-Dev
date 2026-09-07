@@ -194,7 +194,7 @@ public class SessionService(ApplicationDBContext context) : ISessionService
             );
         }
 
-        // 6. Append Visitors 
+        // 6. Append Visitors
         foreach (var (studentId, attendance) in attendanceMap)
         {
             if (!enrolledStudentIds.Contains(studentId))

@@ -11,4 +11,12 @@ public interface IAttendanceService
         Guid SessionId,
         BulkAttendanceDto dto
     );
+
+    Task<ApiResponse<StudentAttendanceRowDto>> AddVisitorStudentToSessionAsync(
+        Guid tenantId,
+        Guid teacherId,
+        Guid userId,
+        Guid SessionId,
+        AddVisitorStudentDto dto
+    );
 }

@@ -168,4 +168,117 @@ public class AttendanceService(ApplicationDBContext context) : IAttendanceServic
 
         return ApiResponse<object>.Ok("تم تسجيل الحضور وتحديث الحسابات بنجاح");
     }
+
+    // ------------------------------------------------------------------------------------------
+
+    public async Task<ApiResponse<StudentAttendanceRowDto>> AddVisitorStudentToSessionAsync(
+        Guid tenantId,
+        Guid teacherId,
+        Guid userId,
+        Guid sessionId,
+        AddVisitorStudentDto dto
+    )
+    {
+        // 1. Get Session
+        var session = await context
+            .Sessions.Include(s => s.Group)
+            .FirstOrDefaultAsync(s =>
+                s.Id == sessionId && s.Group.TeacherId == teacherId && s.Group.TenantId == tenantId
+            );
+
+        if (session == null)
+        {
+            return ApiResponse<StudentAttendanceRowDto>.Fail("الحصة غير موجودة");
+        }
+
+        // 2. Search Student
+        var visitorStudent = await context.Students.FirstOrDefaultAsync(s =>
+            s.StudentCode == dto.StudentCode && s.TenantId == tenantId
+        );
+
+        if (visitorStudent == null)
+        {
+            return ApiResponse<StudentAttendanceRowDto>.Fail("الطالب غير موجود");
+        }
+
+        // 3. Ensure not enrolled originally in the group
+        var isAlreadyEnrolled = await context.StudentGroups.AnyAsync(sg =>
+            sg.GroupId == session.GroupId && sg.StudentId == visitorStudent.Id
+        );
+
+        if (isAlreadyEnrolled)
+        {
+            return ApiResponse<StudentAttendanceRowDto>.Fail("الطالب مقيد بالفعل في هذه المجموعة");
+        }
+
+        // 4. Ensure not already added to this session
+        var isAlreadyInSession = await context.Attendances.AnyAsync(a =>
+            a.SessionId == sessionId && a.StudentId == visitorStudent.Id
+        );
+
+        if (isAlreadyInSession)
+        {
+            return ApiResponse<StudentAttendanceRowDto>.Fail("الطالب مسجل بالفعل في شيت الحصة");
+        }
+
+        // 5. Add Attendance as Visitor
+        var attendance = new Attendance
+        {
+            SessionId = sessionId,
+            StudentId = visitorStudent.Id,
+            Status = AttendanceStatus.Present,
+            IsMakeup = true,
+        };
+        context.Attendances.Add(attendance);
+
+        // 6. Handle Default Cash Collection for Visitor
+        bool isPaid = false;
+        if (session.Group.PaymentType == PaymentType.PerSession)
+        {
+            isPaid = true;
+            var sessionPrice = session.Group.Price;
+
+            var invoice = new StudentInvoice
+            {
+                StudentId = visitorStudent.Id,
+                GroupId = session.GroupId,
+                SessionId = sessionId,
+                Type = InvoiceType.PerSession,
+                TotalAmount = sessionPrice,
+                PaidAmount = sessionPrice,
+                Status = InvoiceStatus.Paid,
+                Transactions = new List<PaymentTransaction>
+                {
+                    new PaymentTransaction
+                    {
+                        Amount = sessionPrice,
+                        Method = PaymentMethod.Cash,
+                        ReceivedByUserId = userId,
+                        Note = $"تحصيل حصة طالب زائر: {session.Group.Name}",
+                    },
+                },
+            };
+
+            context.StudentInvoices.Add(invoice);
+        }
+
+        // 7. Save Changes
+        await context.SaveChangesAsync();
+
+        // 8. Return Row to Frontend
+        return ApiResponse<StudentAttendanceRowDto>.Ok(
+            new StudentAttendanceRowDto(
+                StudentId: visitorStudent.Id,
+                StudentName: visitorStudent.Name,
+                StudentCode: visitorStudent.StudentCode,
+                AttendanceStatus: AttendanceStatus.Present,
+                HasPaidSession: isPaid,
+                RequiredPrice: session.Group.PaymentType == PaymentType.PerSession
+                    ? session.Group.Price
+                    : null,
+                IsVisitorStudent: true
+            ),
+            "تم تسجيل الطالب الزائر وتحصيل الحصة بنجاح."
+        );
+    }
 }

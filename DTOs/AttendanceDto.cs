@@ -30,3 +30,5 @@ public record StudentAttendanceItemDto(
 );
 
 public record BulkAttendanceDto(List<StudentAttendanceItemDto> Students);
+
+public record AddVisitorStudentDto(string StudentCode);
