@@ -14,7 +14,7 @@ public record SessionAttendanceSheetDto(
 );
 
 public record StudentAttendanceRowDto(
-    Guid StudentId, 
+    Guid StudentId,
     string StudentName,
     string StudentCode,
     AttendanceStatus AttendanceStatus,
@@ -22,3 +22,11 @@ public record StudentAttendanceRowDto(
     decimal? RequiredPrice,
     bool IsVisitorStudent
 );
+
+public record StudentAttendanceItemDto(
+    Guid StudentId,
+    AttendanceStatus Status,
+    bool HasPaidSession
+);
+
+public record BulkAttendanceDto(List<StudentAttendanceItemDto> Students);
