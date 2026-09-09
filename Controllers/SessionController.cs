@@ -3,9 +3,11 @@ namespace api.Controllers;
 using api.DTOs;
 using api.Helpers;
 using api.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [Route("api/{slug}/teachers/{teacherId:guid}/sessions")]
+[Authorize(Roles = "Teacher,Staff")]
 public class SessionController(ISessionService sessionService) : BaseApiController
 {
     // * 1. Get Daily Sessions Cards
