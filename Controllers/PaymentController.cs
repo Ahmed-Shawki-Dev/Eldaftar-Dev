@@ -38,4 +38,35 @@ public class PaymentController(IPaymentService paymentService) : BaseApiControll
 
         return NoContent();
     }
+
+    [HttpGet("quick-search/{studentCode}")]
+    public async Task<IActionResult> QuickSearchByStudentCode(
+        [FromRoute] string slug,
+        [FromRoute] Guid teacherId,
+        [FromRoute] string studentCode
+    )
+    {
+        var userContext = User.GetUserContext();
+        if (
+            userContext == null
+            || userContext.TeacherId != teacherId
+            || userContext.TenantSlug != slug
+        )
+        {
+            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس.");
+        }
+
+        var result = await paymentService.GetStudentPendingInvoicesByCodeAsync(
+            userContext.TenantId,
+            teacherId,
+            studentCode.Trim()
+        );
+
+        if (!result.Success)
+        {
+            return BadReq(result.Message, result.Errors);
+        }
+
+        return Success(result.Data!, result.Message);
+    }
 }

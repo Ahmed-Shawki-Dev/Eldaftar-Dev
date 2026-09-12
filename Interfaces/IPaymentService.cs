@@ -15,4 +15,10 @@ public interface IPaymentService
         Guid teacherId,
         PaymentFilterDto filterDto
     );
+
+    Task<ApiResponse<QuickStudentDebtDto>> GetStudentPendingInvoicesByCodeAsync(
+        Guid tenantId,
+        Guid teacherId,
+        string studentCode
+    );
 }
