@@ -2,7 +2,7 @@ using api.Models;
 
 namespace api.DTOs;
 
-public record GroupFinanceSheetDto(
+public record PaymentsSheetDto(
     Guid GroupId,
     string GroupName,
     PaymentType PaymentType,
@@ -12,11 +12,11 @@ public record GroupFinanceSheetDto(
     int PaidCount,
     int UnpaidCount,
     // real data
-    List<MonthlyStudentRowDto>? MonthlySheet,
+    List<MonthlyStudentPaymentRowDto>? MonthlySheet,
     List<PerSessionDebtRowDto>? SessionDebts
 );
 
-public record MonthlyStudentRowDto(
+public record MonthlyStudentPaymentRowDto(
     Guid StudentId,
     string StudentName,
     string? StudentCode,
@@ -38,7 +38,7 @@ public record PerSessionDebtRowDto(
     decimal Amount
 );
 
-public record GroupPaymentFilterDto(int? Year, int? Month)
+public record PaymentFilterDto(int? Year, int? Month)
 {
     public string MonthKey =>
         $"{Year ?? DateTimeOffset.UtcNow.Year:D4}-{Month ?? DateTimeOffset.UtcNow.Month:D2}";
