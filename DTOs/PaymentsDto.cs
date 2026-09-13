@@ -23,8 +23,7 @@ public record MonthlyStudentPaymentRowDto(
     string? ParentPhone,
     Guid InvoiceId,
     decimal Amount,
-    bool IsPaid,
-    DateTimeOffset? PaidAt
+    bool IsPaid
 );
 
 public record PerSessionDebtRowDto(

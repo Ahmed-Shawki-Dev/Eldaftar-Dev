@@ -13,6 +13,7 @@ public interface IPaymentService
     Task<ApiResponse<PaymentsSheetDto>> GetPaymentSheetAsync(
         Guid tenantId,
         Guid teacherId,
+        Guid groupId,
         PaymentFilterDto filterDto
     );
 

@@ -55,13 +55,114 @@ public class PaymentService(ApplicationDBContext context) : IPaymentService
         return ApiResponse<object>.Ok(new { });
     }
 
-    public Task<ApiResponse<PaymentsSheetDto>> GetPaymentSheetAsync(
+    public async Task<ApiResponse<PaymentsSheetDto>> GetPaymentSheetAsync(
         Guid tenantId,
         Guid teacherId,
+        Guid groupId,
         PaymentFilterDto filterDto
     )
     {
-        throw new NotImplementedException();
+        // 1. Get Group
+        var group = await context
+            .Groups.AsNoTracking()
+            .Where(g => g.Id == groupId && g.TeacherId == teacherId && g.TenantId == tenantId)
+            .Select(g => new
+            {
+                g.Id,
+                g.Name,
+                g.Grade,
+                g.PaymentType,
+                g.Price,
+            })
+            .FirstOrDefaultAsync();
+
+        if (group == null)
+        {
+            return ApiResponse<PaymentsSheetDto>.Fail(
+                "المجموعة غير موجودة أو غير مصرح لك بالوصول إليها"
+            );
+        }
+
+        var groupName = $"{group.Grade}-{group.Name}";
+
+        // 2. Define Sheets
+        List<MonthlyStudentPaymentRowDto>? monthlySheet = null;
+        List<PerSessionDebtRowDto>? sessionDebts = null;
+        int totalCount = 0;
+        int paidCount = 0;
+        int unpaidCount = 0;
+
+        // 3. Monthly Sheet Logic
+        if (group.PaymentType == PaymentType.Monthly)
+        {
+            // Generate Month Invoices
+            var monthKey = filterDto.MonthKey;
+
+            // Get All Enrollments And There Month Invoice
+            monthlySheet = await context
+                .StudentGroups.AsNoTracking()
+                .Where(sg => sg.GroupId == groupId)
+                .Select(sg => new
+                {
+                    Invoice = sg.Student.Invoices.FirstOrDefault(i =>
+                        i.GroupId == groupId && i.MonthKey == monthKey
+                    ),
+                    Group = sg,
+                })
+                .Select(x => new MonthlyStudentPaymentRowDto(
+                    x.Group.StudentId,
+                    x.Group.Student.Name,
+                    x.Group.Student.StudentCode,
+                    x.Group.Student.ParentPhone,
+                    x.Invoice != null ? x.Invoice.Id : Guid.Empty,
+                    x.Invoice != null
+                        ? x.Invoice.TotalAmount
+                        : (x.Group.CustomPrice ?? x.Group.Group.Price),
+                    x.Invoice != null && x.Invoice.Status == InvoiceStatus.Paid
+                ))
+                .ToListAsync();
+
+            totalCount = monthlySheet.Count;
+            paidCount = monthlySheet.Count(x => x.IsPaid);
+            unpaidCount = totalCount - paidCount;
+        }
+
+        // 4. PerSession Dept Logic
+        if (group.PaymentType == PaymentType.PerSession)
+        {
+            sessionDebts = await context
+                .StudentInvoices.AsNoTracking()
+                .Where(si => si.GroupId == groupId && si.Status != InvoiceStatus.Paid)
+                .Select(si => new PerSessionDebtRowDto(
+                    si.Id,
+                    si.StudentId,
+                    si.Student.Name,
+                    si.Student.StudentCode,
+                    si.Student.ParentPhone,
+                    si.SessionId!.Value,
+                    si.Session!.CreatedAt,
+                    si.TotalAmount - si.PaidAmount
+                ))
+                .ToListAsync();
+
+            totalCount = sessionDebts.Count;
+            unpaidCount = sessionDebts.Count;
+            paidCount = 0;
+        }
+
+        var paymentSheet = new PaymentsSheetDto(
+            group.Id,
+            groupName,
+            group.PaymentType,
+            group.Price,
+            totalCount,
+            paidCount,
+            unpaidCount,
+            monthlySheet,
+            sessionDebts
+        );
+
+        return ApiResponse<PaymentsSheetDto>.Ok(paymentSheet, "تم إرجاع شيت المستحقات بنجاح");
     }
 
     public async Task<ApiResponse<QuickStudentDebtDto>> GetStudentPendingInvoicesByCodeAsync(
