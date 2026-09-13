@@ -22,4 +22,11 @@ public interface IPaymentService
         Guid teacherId,
         string studentCode
     );
+
+    Task<ApiResponse<object>> CollectPaymentAsync(
+        Guid tenantId,
+        Guid teacherId,
+        Guid userId,
+        CollectPaymentDto dto
+    );
 }

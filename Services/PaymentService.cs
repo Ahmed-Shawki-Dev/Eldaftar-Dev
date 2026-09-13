@@ -8,6 +8,53 @@ namespace api.Services;
 
 public class PaymentService(ApplicationDBContext context) : IPaymentService
 {
+    public async Task<ApiResponse<object>> CollectPaymentAsync(
+        Guid tenantId,
+        Guid teacherId,
+        Guid userId,
+        CollectPaymentDto dto
+    )
+    {
+        // 1. Get Specific Student Invoice with Security Checks
+        var invoice = await context.StudentInvoices.FirstOrDefaultAsync(si =>
+            si.Id == dto.InvoiceId
+            && si.Group.TeacherId == teacherId
+            && si.Group.TenantId == tenantId
+        );
+
+        if (invoice == null)
+        {
+            return ApiResponse<object>.Fail("الفاتورة غير موجودة أو غير مصرح لك بالوصول إليها.");
+        }
+
+        if (invoice.Status == InvoiceStatus.Paid)
+        {
+            return ApiResponse<object>.Fail("هذه الفاتورة مدفوعة بالفعل.");
+        }
+
+        // 2. Calculate remaining & update invoice state
+        var amountToCollect = invoice.TotalAmount - invoice.PaidAmount;
+
+        invoice.PaidAmount = invoice.TotalAmount;
+        invoice.Status = InvoiceStatus.Paid;
+
+        // 3. Record Payment Transaction in ledger
+        var paymentTransaction = new PaymentTransaction
+        {
+            Amount = amountToCollect,
+            Method = PaymentMethod.Cash,
+            InvoiceId = invoice.Id,
+            ReceivedByUserId = userId,
+        };
+
+        context.PaymentTransactions.Add(paymentTransaction);
+
+        // 4. Atomic Commit
+        await context.SaveChangesAsync();
+
+        return ApiResponse<object>.Ok(new { }, "تم تحصيل المبلغ بنجاح");
+    }
+
     public async Task<ApiResponse<object>> GenerateMonthlyInvoicesAsync(
         Guid tenantId,
         Guid teacherId,

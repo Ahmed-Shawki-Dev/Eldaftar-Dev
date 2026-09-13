@@ -63,3 +63,5 @@ public class PendingInvoiceDto
     public decimal PaidAmount { get; set; }
     public decimal RemainingAmount => TotalAmount - PaidAmount;
 }
+
+public record CollectPaymentDto(Guid InvoiceId);

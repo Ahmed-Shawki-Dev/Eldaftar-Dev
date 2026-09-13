@@ -103,4 +103,36 @@ public class PaymentController(IPaymentService paymentService) : BaseApiControll
 
         return Success(result.Data!, result.Message);
     }
+
+    [HttpPost("collect")]
+    public async Task<IActionResult> CollectPaymentAsync(
+        [FromRoute] string slug,
+        [FromRoute] Guid teacherId,
+        [FromBody] CollectPaymentDto dto
+    )
+    {
+        var userContext = User.GetUserContext();
+        if (
+            userContext == null
+            || userContext.TeacherId != teacherId
+            || userContext.TenantSlug != slug
+        )
+        {
+            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس.");
+        }
+
+        var result = await paymentService.CollectPaymentAsync(
+            userContext.TenantId,
+            teacherId,
+            userContext.UserId,
+            dto
+        );
+
+        if (!result.Success)
+        {
+            return BadReq(result.Message, result.Errors);
+        }
+
+        return Success(result.Message);
+    }
 }
