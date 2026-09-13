@@ -55,6 +55,63 @@ public class PaymentService(ApplicationDBContext context) : IPaymentService
         return ApiResponse<object>.Ok(new { }, "تم تحصيل المبلغ بنجاح");
     }
 
+    public async Task<ApiResponse<object>> CancelPaymentAsync(
+        Guid tenantId,
+        Guid teacherId,
+        Guid userId,
+        string userRole,
+        CancelPaymentDto dto
+    )
+    {
+        // 1. Get Specific Student Invoice with Security Checks
+        var invoice = await context.StudentInvoices.FirstOrDefaultAsync(si =>
+            si.Id == dto.InvoiceId
+            && si.Group.TeacherId == teacherId
+            && si.Group.TenantId == tenantId
+        );
+
+        if (invoice == null)
+        {
+            return ApiResponse<object>.Fail("الفاتورة غير موجودة أو غير مصرح لك بالوصول إليها.");
+        }
+
+        if (invoice.Status != InvoiceStatus.Paid)
+        {
+            return ApiResponse<object>.Fail("لا يمكنك الغاء فاتورة غير مدفوعة");
+        }
+
+        // 2. Get Last Invoice Payment Transaction
+        var lastPaymentTransaction = await context
+            .PaymentTransactions.OrderByDescending(pt => pt.CreatedAt)
+            .FirstOrDefaultAsync(pt => pt.InvoiceId == invoice.Id);
+
+        if (lastPaymentTransaction == null)
+        {
+            return ApiResponse<object>.Fail("هناك خلل في البيانات");
+        }
+
+        // 3. Authorization & 15-minute Rule
+        if (userRole != "Teacher")
+        {
+            var timeElapsed = DateTimeOffset.UtcNow - lastPaymentTransaction.CreatedAt;
+            if (timeElapsed.TotalMinutes > 15)
+            {
+                return ApiResponse<object>.Fail("لقد انتهت المهلة المسموحة للتراجع عن التحصيل.");
+            }
+        }
+
+        // 4. Update Invoice And Remove Transaction
+        invoice.PaidAmount = 0;
+        invoice.Status = InvoiceStatus.Unpaid;
+
+        context.PaymentTransactions.Remove(lastPaymentTransaction);
+
+        // 5. Save Changes
+        await context.SaveChangesAsync();
+
+        return ApiResponse<object>.Ok(new { }, "تم إلغاء عملية الدفع بنجاح");
+    }
+
     public async Task<ApiResponse<object>> GenerateMonthlyInvoicesAsync(
         Guid tenantId,
         Guid teacherId,

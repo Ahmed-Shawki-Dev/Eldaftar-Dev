@@ -65,3 +65,5 @@ public class PendingInvoiceDto
 }
 
 public record CollectPaymentDto(Guid InvoiceId);
+
+public record CancelPaymentDto(Guid InvoiceId);

@@ -135,4 +135,37 @@ public class PaymentController(IPaymentService paymentService) : BaseApiControll
 
         return Success(result.Message);
     }
+
+    [HttpPost("cancel")]
+    public async Task<IActionResult> CancelPaymentAsync(
+        [FromRoute] string slug,
+        [FromRoute] Guid teacherId,
+        [FromBody] CancelPaymentDto dto
+    )
+    {
+        var userContext = User.GetUserContext();
+        if (
+            userContext == null
+            || userContext.TeacherId != teacherId
+            || userContext.TenantSlug != slug
+        )
+        {
+            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس.");
+        }
+
+        var result = await paymentService.CancelPaymentAsync(
+            userContext.TenantId,
+            teacherId,
+            userContext.UserId,
+            userContext.RoleClaim,
+            dto
+        );
+
+        if (!result.Success)
+        {
+            return BadReq(result.Message, result.Errors);
+        }
+
+        return Success(result.Message);
+    }
 }

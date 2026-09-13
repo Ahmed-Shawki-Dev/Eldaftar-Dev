@@ -29,4 +29,12 @@ public interface IPaymentService
         Guid userId,
         CollectPaymentDto dto
     );
+
+    Task<ApiResponse<object>> CancelPaymentAsync(
+        Guid tenantId,
+        Guid teacherId,
+        Guid userId,
+        string userRole,
+        CancelPaymentDto dto
+    );
 }
