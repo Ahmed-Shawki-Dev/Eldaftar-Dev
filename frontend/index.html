@@ -1,10 +1,29 @@
 <!doctype html>
-<html lang="en">
+<html dir="rtl" lang="ar">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+    <title>Eldaftar</title>
+
+    <!-- Fix Flicker Script -->
+    <script>
+      ;(function () {
+        const storageKey = 'theme'
+        const defaultTheme = 'dark'
+        const theme = localStorage.getItem(storageKey) || defaultTheme
+        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark'
+          : 'light'
+        const activeTheme = theme === 'system' ? systemTheme : theme
+
+        if (activeTheme === 'dark') {
+          document.documentElement.classList.add('dark')
+        } else {
+          document.documentElement.classList.remove('dark')
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>
