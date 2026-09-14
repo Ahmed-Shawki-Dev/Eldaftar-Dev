@@ -1,0 +1,12 @@
+{
+  "name": "eldaftar-monorepo",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n \"API,WEB\" -c \"bgBlue.bold,bgGreen.bold\" \"cd api && dotnet watch run\" \"cd frontend && pnpm dev\"",
+    "dev:api": "cd api && dotnet watch run",
+    "dev:web": "cd frontend && pnpm dev"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}

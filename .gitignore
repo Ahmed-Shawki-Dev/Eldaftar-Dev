@@ -1,21 +1,58 @@
-## Build & Output Folders
-bin/
-obj/
+# ==========================================
+# Frontend (Next.js & Node)
+# ==========================================
+**/node_modules/
+**/.next/
+**/out/
+**/build/
+**/dist/
+**/.pnpm-store/
+.pnpm-debug.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-## IDE & Editor Specific
-.vscode/
-.vs/
+# Yarn / PnP (لو مستخدم)
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# TypeScript & Next
+*.tsbuildinfo
+next-env.d.ts
+.vercel/
+coverage/
+
+# ==========================================
+# Backend (.NET / C#)
+# ==========================================
+**/bin/
+**/obj/
 *.user
 *.userosscache
 *.suo
+*.sln.docstates
 
-## Sensitive Settings 
+# Sensitive & Local Settings
 appsettings.Development.json
 appsettings.Production.json
-appsettings.json
-appsettings.*.json
-!appsettings.Example.json
+appsettings.*.local.json
 
-## OS Generated Files
+# ==========================================
+# Environment Variables & Secrets
+# ==========================================
+.env
+.env*.local
+*.pem
+
+# ==========================================
+# IDEs & System Files
+# ==========================================
+.vscode/
+.vs/
+.idea/
 .DS_Store
 Thumbs.db
