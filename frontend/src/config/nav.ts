@@ -17,7 +17,7 @@ export const navItems = [
   { title: 'الطلاب', url: 'students', icon: StudentIcon },
   { title: 'المدفوعات', url: 'payments', icon: MoneyIcon },
   { title: 'الامتحانات', url: 'exams', icon: ExamIcon },
-  { title: 'السكرتيرات', url: 'assistants', icon: UserIcon },
+  { title: 'السكرتيرات', url: 'staff', icon: UserIcon },
   { title: 'التقارير', url: 'reports', icon: FileIcon },
   { title: 'الإعدادات', url: 'settings', icon: GearIcon },
 ]
