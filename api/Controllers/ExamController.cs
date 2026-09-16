@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers;
 
-[Route("api/{slug}/teachers/{teacherId:guid}/exams")]
+[Route("api/{slug}/exams")]
 [Authorize(Roles = "Teacher,Staff")]
 public class ExamController(IExamService examService) : BaseApiController
 {
@@ -14,7 +14,6 @@ public class ExamController(IExamService examService) : BaseApiController
     [HttpPost]
     public async Task<IActionResult> CreateExam(
         [FromRoute] string slug,
-        [FromRoute] Guid teacherId,
         [FromBody] CreateExamDto dto
     )
     {
@@ -22,7 +21,6 @@ public class ExamController(IExamService examService) : BaseApiController
         var userContext = User.GetUserContext();
         if (
             userContext == null
-            || userContext.TeacherId != teacherId
             || userContext.TenantSlug != slug
         )
         {
@@ -48,7 +46,6 @@ public class ExamController(IExamService examService) : BaseApiController
     [HttpGet]
     public async Task<IActionResult> GetAllExams(
         [FromRoute] string slug,
-        [FromRoute] Guid teacherId,
         [FromQuery] ExamParamsDto parameters
     )
     {
@@ -56,7 +53,6 @@ public class ExamController(IExamService examService) : BaseApiController
         var userContext = User.GetUserContext();
         if (
             userContext == null
-            || userContext.TeacherId != teacherId
             || userContext.TenantSlug != slug
         )
         {
@@ -82,7 +78,6 @@ public class ExamController(IExamService examService) : BaseApiController
     [HttpGet("{examId:guid}")]
     public async Task<IActionResult> GetExamById(
         [FromRoute] string slug,
-        [FromRoute] Guid teacherId,
         [FromRoute] Guid examId
     )
     {
@@ -90,7 +85,6 @@ public class ExamController(IExamService examService) : BaseApiController
         var userContext = User.GetUserContext();
         if (
             userContext == null
-            || userContext.TeacherId != teacherId
             || userContext.TenantSlug != slug
         )
         {
@@ -116,7 +110,6 @@ public class ExamController(IExamService examService) : BaseApiController
     [HttpPut("{examId:guid}")]
     public async Task<IActionResult> UpdateExam(
         [FromRoute] string slug,
-        [FromRoute] Guid teacherId,
         [FromRoute] Guid examId,
         [FromBody] UpdateExamDto dto
     )
@@ -125,7 +118,6 @@ public class ExamController(IExamService examService) : BaseApiController
         var userContext = User.GetUserContext();
         if (
             userContext == null
-            || userContext.TeacherId != teacherId
             || userContext.TenantSlug != slug
         )
         {
@@ -152,7 +144,6 @@ public class ExamController(IExamService examService) : BaseApiController
     [HttpDelete("{examId:guid}")]
     public async Task<IActionResult> DeleteExam(
         [FromRoute] string slug,
-        [FromRoute] Guid teacherId,
         [FromRoute] Guid examId
     )
     {
@@ -160,7 +151,6 @@ public class ExamController(IExamService examService) : BaseApiController
         var userContext = User.GetUserContext();
         if (
             userContext == null
-            || userContext.TeacherId != teacherId
             || userContext.TenantSlug != slug
         )
         {
@@ -186,7 +176,6 @@ public class ExamController(IExamService examService) : BaseApiController
     [HttpGet("{examId:guid}/sheet")]
     public async Task<IActionResult> GetExamSheet(
         [FromRoute] string slug,
-        [FromRoute] Guid teacherId,
         [FromRoute] Guid examId
     )
     {
@@ -194,7 +183,6 @@ public class ExamController(IExamService examService) : BaseApiController
         var userContext = User.GetUserContext();
         if (
             userContext == null
-            || userContext.TeacherId != teacherId
             || userContext.TenantSlug != slug
         )
         {
@@ -220,7 +208,6 @@ public class ExamController(IExamService examService) : BaseApiController
     [HttpPost("{examId:guid}/sheet")]
     public async Task<IActionResult> UpdateExamSheet(
         [FromRoute] string slug,
-        [FromRoute] Guid teacherId,
         [FromRoute] Guid examId,
         [FromBody] UpdateExamSheetDto dto
     )
@@ -229,7 +216,6 @@ public class ExamController(IExamService examService) : BaseApiController
         var userContext = User.GetUserContext();
         if (
             userContext == null
-            || userContext.TeacherId != teacherId
             || userContext.TenantSlug != slug
         )
         {

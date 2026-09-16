@@ -37,6 +37,7 @@ public class AuthController(IAuthService authService) : BaseApiController
                 HttpOnly = true,
                 Secure = false,
                 SameSite = SameSiteMode.Lax,
+                Path = "/",
                 Expires = DateTime.UtcNow.AddDays(7),
             }
         );
@@ -44,6 +45,7 @@ public class AuthController(IAuthService authService) : BaseApiController
         return Success(result.Message);
     }
 
+    [Authorize]
     [HttpPost("{slug}/auth/logout")]
     public IActionResult Logout([FromRoute] string slug)
     {

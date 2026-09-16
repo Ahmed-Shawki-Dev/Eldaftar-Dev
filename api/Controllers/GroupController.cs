@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers;
 
-[Route("api/{slug}/teachers/{teacherId:guid}/groups")]
+[Route("api/{slug}/groups")]
 [Authorize(Roles = "Teacher,Staff")]
 public class GroupController(IGroupService groupService) : BaseApiController
 {
@@ -14,17 +14,12 @@ public class GroupController(IGroupService groupService) : BaseApiController
     [HttpPost]
     public async Task<IActionResult> CreateGroup(
         [FromRoute] string slug,
-        [FromRoute] Guid teacherId,
         [FromBody] CreateGroupDto dto
     )
     {
         // 1. Check Authorization & Ownership
         var userContext = User.GetUserContext();
-        if (
-            userContext == null
-            || userContext.TeacherId != teacherId
-            || userContext.TenantSlug != slug
-        )
+        if (userContext == null || userContext.TenantSlug != slug)
         {
             return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس");
         }
@@ -48,23 +43,22 @@ public class GroupController(IGroupService groupService) : BaseApiController
     [HttpGet]
     public async Task<IActionResult> GetGroups(
         [FromRoute] string slug,
-        [FromRoute] Guid teacherId,
         [FromQuery] GroupParamsDto parameters
     )
     {
         // 1. Check Authorization & Ownership
         var userContext = User.GetUserContext();
-        if (
-            userContext == null
-            || userContext.TeacherId != teacherId
-            || userContext.TenantSlug != slug
-        )
+        if (userContext == null || userContext.TenantSlug != slug)
         {
             return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس");
         }
 
         // 2. Execute Business Logic
-        var result = await groupService.GetGroupsAsync(userContext.TenantId, teacherId, parameters);
+        var result = await groupService.GetGroupsAsync(
+            userContext.TenantId,
+            userContext.TeacherId,
+            parameters
+        );
 
         // 3. Return 200 OK
         return Success(result.Data!, result.Pagination!, result.Message);
@@ -74,7 +68,6 @@ public class GroupController(IGroupService groupService) : BaseApiController
     [HttpGet("{groupId:guid}")]
     public async Task<IActionResult> GetGroupById(
         [FromRoute] string slug,
-        [FromRoute] Guid teacherId,
         [FromRoute] Guid groupId
     )
     {
@@ -82,7 +75,6 @@ public class GroupController(IGroupService groupService) : BaseApiController
         var userContext = User.GetUserContext();
         if (
             userContext == null
-            || userContext.TeacherId != teacherId
             || userContext.TenantSlug != slug
         )
         {
@@ -108,7 +100,6 @@ public class GroupController(IGroupService groupService) : BaseApiController
     [HttpPut("{groupId:guid}")]
     public async Task<IActionResult> UpdateGroup(
         [FromRoute] string slug,
-        [FromRoute] Guid teacherId,
         [FromRoute] Guid groupId,
         [FromBody] UpdateGroupDto dto
     )
@@ -117,7 +108,6 @@ public class GroupController(IGroupService groupService) : BaseApiController
         var userContext = User.GetUserContext();
         if (
             userContext == null
-            || userContext.TeacherId != teacherId
             || userContext.TenantSlug != slug
         )
         {
@@ -127,7 +117,7 @@ public class GroupController(IGroupService groupService) : BaseApiController
         // 2. Execute Business Logic
         var result = await groupService.UpdateGroupAsync(
             userContext.TenantId,
-            teacherId,
+            userContext.TeacherId,
             groupId,
             dto
         );
@@ -145,7 +135,6 @@ public class GroupController(IGroupService groupService) : BaseApiController
     [HttpDelete("{groupId:guid}")]
     public async Task<IActionResult> DeleteGroup(
         [FromRoute] string slug,
-        [FromRoute] Guid teacherId,
         [FromRoute] Guid groupId
     )
     {
@@ -153,7 +142,6 @@ public class GroupController(IGroupService groupService) : BaseApiController
         var userContext = User.GetUserContext();
         if (
             userContext == null
-            || userContext.TeacherId != teacherId
             || userContext.TenantSlug != slug
         )
         {

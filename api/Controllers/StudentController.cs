@@ -6,14 +6,13 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers;
 
-[Route("api/{slug}/teachers/{teacherId:guid}/students")]
+[Route("api/{slug}/students")]
 [Authorize(Roles = "Teacher,Staff")]
 public class StudentController(IStudentService studentService) : BaseApiController
 {
     [HttpPost]
     public async Task<IActionResult> CreateStudent(
         [FromRoute] string slug,
-        [FromRoute] Guid teacherId,
         [FromBody] CreateStudentDto dto
     )
     {
@@ -21,7 +20,6 @@ public class StudentController(IStudentService studentService) : BaseApiControll
         var userContext = User.GetUserContext();
         if (
             userContext == null
-            || userContext.TeacherId != teacherId
             || userContext.TenantSlug != slug
         )
         {
@@ -45,7 +43,6 @@ public class StudentController(IStudentService studentService) : BaseApiControll
     [HttpGet]
     public async Task<IActionResult> GetAllStudents(
         [FromRoute] string slug,
-        [FromRoute] Guid teacherId,
         [FromQuery] StudentParamsDto parameters
     )
     {
@@ -53,7 +50,6 @@ public class StudentController(IStudentService studentService) : BaseApiControll
         var userContext = User.GetUserContext();
         if (
             userContext == null
-            || userContext.TeacherId != teacherId
             || userContext.TenantSlug != slug
         )
         {
@@ -77,7 +73,6 @@ public class StudentController(IStudentService studentService) : BaseApiControll
     [HttpGet("{studentId:guid}")]
     public async Task<IActionResult> GetStudentById(
         [FromRoute] string slug,
-        [FromRoute] Guid teacherId,
         [FromRoute] Guid studentId
     )
     {
@@ -85,7 +80,6 @@ public class StudentController(IStudentService studentService) : BaseApiControll
         var userContext = User.GetUserContext();
         if (
             userContext == null
-            || userContext.TeacherId != teacherId
             || userContext.TenantSlug != slug
         )
         {
@@ -111,7 +105,6 @@ public class StudentController(IStudentService studentService) : BaseApiControll
     [HttpPut("{studentId:guid}")]
     public async Task<IActionResult> UpdateStudent(
         [FromRoute] string slug,
-        [FromRoute] Guid teacherId,
         [FromRoute] Guid studentId,
         [FromBody] UpdateStudentDto dto
     )
@@ -120,7 +113,6 @@ public class StudentController(IStudentService studentService) : BaseApiControll
         var userContext = User.GetUserContext();
         if (
             userContext == null
-            || userContext.TeacherId != teacherId
             || userContext.TenantSlug != slug
         )
         {
@@ -147,7 +139,6 @@ public class StudentController(IStudentService studentService) : BaseApiControll
     [HttpDelete("{studentId:guid}")]
     public async Task<IActionResult> SoftDeleteStudent(
         [FromRoute] string slug,
-        [FromRoute] Guid teacherId,
         [FromRoute] Guid studentId
     )
     {
@@ -155,7 +146,6 @@ public class StudentController(IStudentService studentService) : BaseApiControll
         var userContext = User.GetUserContext();
         if (
             userContext == null
-            || userContext.TeacherId != teacherId
             || userContext.TenantSlug != slug
         )
         {

@@ -1,30 +1,25 @@
 using api.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers;
 
-[Route("api/{slug}/teachers/{teacherId:guid}/backup")]
+[Authorize]
+[Route("api/{slug}/backup")]
 public class BackupController(IBackupService backupService) : BaseApiController
 {
     [HttpGet("export-excel")]
-    public async Task<IActionResult> ExportTeacherDataAsExcel(
-        [FromRoute] string slug,
-        [FromRoute] Guid teacherId
-    )
+    public async Task<IActionResult> ExportTeacherDataAsExcel([FromRoute] string slug)
     {
         var userContext = User.GetUserContext();
-        if (
-            userContext == null
-            || userContext.TeacherId != teacherId
-            || userContext.TenantSlug != slug
-        )
+        if (userContext == null || userContext.TenantSlug != slug)
         {
             return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس.");
         }
 
         byte[] fileBytes = await backupService.ExportFullTeacherDataExcelAsync(
             userContext.TenantId,
-            teacherId
+            userContext.TeacherId
         );
 
         const string contentType =

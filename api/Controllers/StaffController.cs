@@ -6,21 +6,19 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers;
 
-[Route("api/{slug}/teachers/{teacherId:guid}/staff")]
+[Route("api/{slug}/staff")]
 [Authorize(Roles = "Teacher")]
 public class StaffController(IStaffService staffService) : BaseApiController
 {
     [HttpPost]
     public async Task<IActionResult> CreateStaff(
         [FromRoute] string slug,
-        [FromRoute] Guid teacherId,
         [FromBody] CreateStaffDto dto
     )
     {
         var userContext = User.GetUserContext();
         if (
             userContext == null
-            || userContext.TeacherId != teacherId
             || userContext.TenantSlug != slug
         )
         {
@@ -43,14 +41,12 @@ public class StaffController(IStaffService staffService) : BaseApiController
 
     [HttpGet]
     public async Task<IActionResult> GetAllStaff(
-        [FromRoute] string slug,
-        [FromRoute] Guid teacherId
+        [FromRoute] string slug
     )
     {
         var userContext = User.GetUserContext();
         if (
             userContext == null
-            || userContext.TeacherId != teacherId
             || userContext.TenantSlug != slug
         )
         {
@@ -73,7 +69,6 @@ public class StaffController(IStaffService staffService) : BaseApiController
     [HttpPut("{staffId:guid}")]
     public async Task<IActionResult> UpdateStaff(
         [FromRoute] string slug,
-        [FromRoute] Guid teacherId,
         [FromRoute] Guid staffId,
         [FromBody] UpdateStaffDto dto
     )
@@ -81,7 +76,6 @@ public class StaffController(IStaffService staffService) : BaseApiController
         var userContext = User.GetUserContext();
         if (
             userContext == null
-            || userContext.TeacherId != teacherId
             || userContext.TenantSlug != slug
         )
         {
@@ -106,14 +100,12 @@ public class StaffController(IStaffService staffService) : BaseApiController
     [HttpDelete("{staffId:guid}")]
     public async Task<IActionResult> DeleteStaff(
         [FromRoute] string slug,
-        [FromRoute] Guid teacherId,
         [FromRoute] Guid staffId
     )
     {
         var userContext = User.GetUserContext();
         if (
             userContext == null
-            || userContext.TeacherId != teacherId
             || userContext.TenantSlug != slug
         )
         {

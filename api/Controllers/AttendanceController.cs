@@ -1,38 +1,31 @@
 namespace api.Controllers;
 
 using api.DTOs;
-using api.Helpers;
 using api.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-[Route("api/{slug}/teachers/{teacherId:guid}/sessions/{sessionId:guid}/attendance")]
+[Route("api/{slug}/sessions/{sessionId:guid}/attendance")]
 [Authorize]
 public class AttendanceController(IAttendanceService attendanceService) : BaseApiController
 {
     // * Submit Bulk Attendance
-    // POST: api/{slug}/teachers/{teacherId}/sessions/{sessionId}/attendance/bulk
     [HttpPost("bulk")]
     public async Task<IActionResult> BulkAttendance(
         [FromRoute] string slug,
-        [FromRoute] Guid teacherId,
         [FromRoute] Guid sessionId,
         [FromBody] BulkAttendanceDto dto
     )
     {
         var userContext = User.GetUserContext();
-        if (
-            userContext == null
-            || userContext.TeacherId != teacherId
-            || userContext.TenantSlug != slug
-        )
+        if (userContext == null || userContext.TenantSlug != slug)
         {
             return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس.");
         }
 
         var result = await attendanceService.BulkAttendanceAsync(
             userContext.TenantId,
-            teacherId,
+            userContext.TeacherId,
             userContext.UserId,
             sessionId,
             dto
@@ -47,28 +40,22 @@ public class AttendanceController(IAttendanceService attendanceService) : BaseAp
     }
 
     // * Add Visitor Student to Session
-    // POST: api/{slug}/teachers/{teacherId}/sessions/{sessionId}/attendance/visitors
     [HttpPost("visitors")]
     public async Task<IActionResult> AddVisitorStudent(
         [FromRoute] string slug,
-        [FromRoute] Guid teacherId,
         [FromRoute] Guid sessionId,
         [FromBody] AddVisitorStudentDto dto
     )
     {
         var userContext = User.GetUserContext();
-        if (
-            userContext == null
-            || userContext.TeacherId != teacherId
-            || userContext.TenantSlug != slug
-        )
+        if (userContext == null || userContext.TenantSlug != slug)
         {
             return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس.");
         }
 
         var result = await attendanceService.AddVisitorStudentToSessionAsync(
             userContext.TenantId,
-            teacherId,
+            userContext.TeacherId,
             userContext.UserId,
             sessionId,
             dto
