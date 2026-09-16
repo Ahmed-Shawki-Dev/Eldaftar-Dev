@@ -8,3 +8,11 @@ public record LoginDto(
 );
 
 public record LoginResponseDto(string Token);
+
+public record CurrentUserDto(
+    Guid UserId,
+    string Role,
+    string TenantSlug,
+    Guid TenantId,
+    Guid? TeacherId
+);
