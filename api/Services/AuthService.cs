@@ -132,8 +132,19 @@ public class AuthService(
 
         // 3. Create And Retrieve Token
         var token = await tokenService.CreateTokenAsync(user, tenant);
+
+        var roles = await userManager.GetRolesAsync(user);
+        var role = roles.FirstOrDefault() ?? "User";
+
+        var teacherId = await context
+            .Teachers.Where(t => t.UserId == user.Id)
+            .Select(t => (Guid?)t.Id)
+            .FirstOrDefaultAsync();
+
+        var currentUser = new CurrentUserDto(user.Id, role, tenant.Slug, tenant.Id, teacherId);
+
         return ApiResponse<LoginResponseDto>.Ok(
-            new LoginResponseDto(token),
+            new LoginResponseDto(token, currentUser),
             "تم تسجيل الدخول بنجاح."
         );
     }

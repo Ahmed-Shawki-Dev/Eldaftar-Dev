@@ -7,7 +7,7 @@ public record LoginDto(
     [Required, MinLength(6)] string Password
 );
 
-public record LoginResponseDto(string Token);
+public record LoginResponseDto(string Token, CurrentUserDto User);
 
 public record CurrentUserDto(
     Guid UserId,

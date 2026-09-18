@@ -3,10 +3,15 @@ using System.Security.Claims;
 public record UserContext(
     Guid UserId,
     Guid TenantId,
-    Guid TeacherId,
+    Guid? RawTeacherId,
     string TenantSlug,
     string RoleClaim
-);
+)
+{
+    public Guid TeacherId => RawTeacherId.GetValueOrDefault();
+
+    public Guid? NullableTeacherId => RawTeacherId;
+}
 
 public static class UserClaimsExtensions
 {
@@ -18,10 +23,13 @@ public static class UserClaimsExtensions
         var slugClaim = user.FindFirst("tenantSlug")?.Value;
         var roleClaim = user.FindFirst("role")?.Value ?? user.FindFirst(ClaimTypes.Role)?.Value;
 
+        Guid? teacherId = Guid.TryParse(teacherClaim, out var parsedTeacherId)
+            ? parsedTeacherId
+            : null;
+
         if (
             Guid.TryParse(userClaim, out var userId)
             && Guid.TryParse(tenantClaim, out var tenantId)
-            && Guid.TryParse(teacherClaim, out var teacherId)
             && !string.IsNullOrWhiteSpace(slugClaim)
             && !string.IsNullOrWhiteSpace(roleClaim)
         )

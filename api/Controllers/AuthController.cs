@@ -42,7 +42,7 @@ public class AuthController(IAuthService authService) : BaseApiController
             }
         );
 
-        return Success(result.Message);
+        return Success(result.Data.User, result.Message);
     }
 
     [Authorize]
@@ -81,7 +81,7 @@ public class AuthController(IAuthService authService) : BaseApiController
             userContext.RoleClaim,
             userContext.TenantSlug,
             userContext.TenantId,
-            userContext.TeacherId
+            userContext.NullableTeacherId
         );
 
         return Success(dto, "تم التحقق من الجلسة بنجاح.");
