@@ -13,8 +13,8 @@ import { NavLink } from 'react-router'
 
 export function AppSidebar() {
   return (
-    <Sidebar side='right'>
-      <SidebarHeader className='flex h-14 items-center justify-center border-b px-4 text-lg font-bold'>
+    <Sidebar side='right' collapsible='icon' className='border-l border-border'>
+      <SidebarHeader className='flex h-14 items-center justify-center border-b border-l px-4 text-lg font-bold'>
         Test
       </SidebarHeader>
 
@@ -34,7 +34,7 @@ export function AppSidebar() {
                             : ''
                         }
                       >
-                        <item.icon/>
+                        <item.icon />
                         <span>{item.title}</span>
                       </SidebarMenuButton>
                     )}
