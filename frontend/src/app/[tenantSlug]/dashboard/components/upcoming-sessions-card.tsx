@@ -11,7 +11,7 @@ export default function UpcomingSessionsCard({ sessions }: IProps) {
   const hasSessions = sessions && sessions.length > 0
 
   return (
-    <Card className='w-full flex-1'>
+    <Card className='w-full'>
       <CardHeader className='flex flex-row items-center justify-between pb-3'>
         <CardTitle className='text-base font-bold text-foreground'>جدول حصص اليوم</CardTitle>
         {hasSessions && (

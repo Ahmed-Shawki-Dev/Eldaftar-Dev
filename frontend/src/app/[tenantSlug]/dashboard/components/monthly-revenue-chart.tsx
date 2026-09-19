@@ -21,7 +21,7 @@ const chartConfig = {
 
 export default function MonthlyRevenueChart({ data = [] }: IProps) {
   return (
-    <Card className='w-full flex-1'>
+    <Card className='w-full h-full'>
       <CardHeader className='pb-2'>
         <CardTitle className='text-base font-bold text-foreground'>إيرادات الشهور</CardTitle>
       </CardHeader>

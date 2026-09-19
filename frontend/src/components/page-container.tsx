@@ -21,8 +21,8 @@ export default function PageContainer({ title, description, icon, action, childr
           )}
 
           <div>
-            <h1 className='text-xl font-bold tracking-tight text-foreground'>{title}</h1>
-            {description && <p className='text-sm text-muted-foreground mt-0.5'>{description}</p>}
+            <h1 className='text-3xl font-black tracking-tight'>{title}</h1>
+            {description && <p className='text-md text-muted-foreground mt-1'>{description}</p>}
           </div>
         </div>
 
