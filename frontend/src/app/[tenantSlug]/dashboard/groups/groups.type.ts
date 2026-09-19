@@ -46,35 +46,9 @@ export interface GroupSummaryDto {
   schedules: CreateScheduleDto[]
 }
 
-export class GroupParamsDto {
-  private static readonly MaxPageSize = 50
-
-  private _pageNumber: number = 1
-  public get pageNumber(): number {
-    return this._pageNumber
-  }
-  public set pageNumber(value: number) {
-    this._pageNumber = value < 1 ? 1 : value
-  }
-
-  private _pageSize: number = 10
-  public get pageSize(): number {
-    return this._pageSize
-  }
-  public set pageSize(value: number) {
-    this._pageSize =
-      value > GroupParamsDto.MaxPageSize ? GroupParamsDto.MaxPageSize : value < 1 ? 10 : value
-  }
-
-  public searchTerm?: string
-  public grade?: string
-
-  constructor(init?: Partial<GroupParamsDto>) {
-    if (init) {
-      if (init.pageNumber !== undefined) this.pageNumber = init.pageNumber
-      if (init.pageSize !== undefined) this.pageSize = init.pageSize
-      this.searchTerm = init.searchTerm
-      this.grade = init.grade
-    }
-  }
+export interface GroupParamsDto {
+  pageNumber?: number
+  pageSize?: number
+  searchTerm?: string
+  grade?: string
 }

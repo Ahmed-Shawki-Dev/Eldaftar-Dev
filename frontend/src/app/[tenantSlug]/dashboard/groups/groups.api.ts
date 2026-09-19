@@ -1,6 +1,9 @@
 import { apiClient } from '@/lib/api-client'
-import type { GroupSummaryDto } from './groups.type'
+import type { GroupParamsDto, GroupSummaryDto } from './groups.type'
 
 export const groupsApi = {
-  getAllGroups: (slug: string) => apiClient.get<GroupSummaryDto[]>(`${slug}/groups`),
+  getAllGroups: (slug: string, filters?: GroupParamsDto) =>
+    apiClient.get<GroupSummaryDto[]>(`${slug}/groups`, {
+      params: filters,
+    }),
 }
