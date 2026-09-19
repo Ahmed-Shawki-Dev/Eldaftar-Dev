@@ -1,3 +1,5 @@
+import { DayOfWeekEnum } from '@/app/[tenantSlug]/dashboard/groups/groups.type'
+
 export const formatCurrency = (amount?: number): string => {
   if (amount == null) return '---'
 
@@ -21,4 +23,14 @@ export function formatTo12Hour(timeStr: string): string {
   const adjustedHours = hours % 12 || 12
 
   return `${adjustedHours}:${minutes} ${period}`
+}
+
+export const DayOfWeekArabic: Record<DayOfWeekEnum, string> = {
+  [DayOfWeekEnum.Saturday]: 'السبت',
+  [DayOfWeekEnum.Sunday]: 'الأحد',
+  [DayOfWeekEnum.Monday]: 'الإثنين',
+  [DayOfWeekEnum.Tuesday]: 'الثلاثاء',
+  [DayOfWeekEnum.Wednesday]: 'الأربعاء',
+  [DayOfWeekEnum.Thursday]: 'الخميس',
+  [DayOfWeekEnum.Friday]: 'الجمعة',
 }
