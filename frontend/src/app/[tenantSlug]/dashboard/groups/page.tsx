@@ -5,6 +5,7 @@ import { GRADES } from '@/lib/utils'
 import { ClockIcon } from '@phosphor-icons/react'
 import { useQuery } from '@tanstack/react-query'
 import { useParams, useSearchParams } from 'react-router'
+import AddGroupDialog from './components/add-group-dialog'
 import DashboardGroupsTable from './components/dashboard-groups-table'
 import { groupsApi } from './groups.api'
 
@@ -27,6 +28,7 @@ export default function GroupsPage() {
       title='المجاميع'
       description='نظرة عامة على المجموعات الدراسية'
       icon={<ClockIcon size={32} />}
+      action={<AddGroupDialog slug={tenantSlug ?? ''} />}
     >
       <DashboardSearchWithFilter
         searchKey='searchTerm'
@@ -35,7 +37,7 @@ export default function GroupsPage() {
         filterPlaceholder='اختار الصف الدراسي...'
         filterOptions={GRADES}
       />
-      <DashboardGroupsTable groups={query.data?.data ?? []} />
+      <DashboardGroupsTable groups={query.data?.data ?? []} slug={tenantSlug ?? ''} />
       <div className='self-start'>
         <DashboardPagination paginationMetadata={query.data?.pagination} />
       </div>
