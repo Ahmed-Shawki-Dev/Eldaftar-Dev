@@ -22,6 +22,8 @@ export default function DashboardFilter({ filterKey, options, placeholder }: Gen
   const [searchParams, setSearchParams] = useSearchParams()
   const currentValue = searchParams.get(filterKey) ?? ''
 
+  const selectedLabel = options.find((opt) => opt.value === currentValue)?.label
+
   const handleSelect = (selectedValue: string | null) => {
     setSearchParams((prev) => {
       if (!selectedValue || selectedValue === 'all') {
@@ -38,7 +40,7 @@ export default function DashboardFilter({ filterKey, options, placeholder }: Gen
   return (
     <Select value={currentValue} onValueChange={handleSelect}>
       <SelectTrigger className='h-10 w-48 bg-card border-border'>
-        <SelectValue placeholder={placeholder} />
+        <SelectValue placeholder={placeholder}>{selectedLabel}</SelectValue>
       </SelectTrigger>
       <SelectContent>
         <SelectItem value='all'>الكل</SelectItem>

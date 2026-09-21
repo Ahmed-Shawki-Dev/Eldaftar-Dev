@@ -36,7 +36,8 @@ public record StudentDto(
     string ParentPhone,
     string? Phone,
     Guid GroupId,
-    string GroupName
+    string GroupName,
+    decimal? CustomPrice
 );
 
 public record StudentParamsDto

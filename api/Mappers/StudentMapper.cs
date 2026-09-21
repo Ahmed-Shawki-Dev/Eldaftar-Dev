@@ -30,6 +30,10 @@ public static class StudentMapper
     // Student Entity + Group -> StudentDto
     public static StudentDto ToDto(this Student student, Group group)
     {
+        var customPrice = student
+            .StudentGroups?.FirstOrDefault(sg => sg.GroupId == group.Id)
+            ?.CustomPrice;
+
         return new StudentDto(
             student.Id,
             student.StudentCode,
@@ -37,7 +41,8 @@ public static class StudentMapper
             student.ParentPhone,
             student.Phone,
             group.Id,
-            $"{group.Grade} - {group.Name}"
+            $"{group.Grade} - {group.Name}",
+            customPrice
         );
     }
 
@@ -50,7 +55,8 @@ public static class StudentMapper
             sg.Student.ParentPhone,
             sg.Student.Phone,
             sg.Group.Id,
-            $"{sg.Group.Grade} - {sg.Group.Name}"
+            $"{sg.Group.Grade} - {sg.Group.Name}",
+            sg.CustomPrice
         );
     }
 
