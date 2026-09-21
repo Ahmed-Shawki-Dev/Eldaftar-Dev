@@ -16,16 +16,33 @@ public class DashboardService(ApplicationDBContext context) : IDashboardService
         // 1. Get Dates To Make Queries
         var now = DateTimeOffset.Now;
 
-        var startOfToday = new DateTimeOffset(now.Year, now.Month, now.Day, 0, 0, 0, TimeSpan.Zero);
+        var startOfToday = new DateTimeOffset(
+            now.Year,
+            now.Month,
+            now.Day,
+            0,
+            0,
+            0,
+            now.Offset
+        ).ToUniversalTime();
         var startOfTomorrow = startOfToday.AddDays(1);
 
-        var startOfMonth = new DateTimeOffset(now.Year, now.Month, 1, 0, 0, 0, TimeSpan.Zero);
+        var startOfMonth = new DateTimeOffset(
+            now.Year,
+            now.Month,
+            1,
+            0,
+            0,
+            0,
+            now.Offset
+        ).ToUniversalTime();
         var startOfNextMonth = startOfMonth.AddMonths(1);
         var sixMonthAgo = startOfMonth.AddMonths(-5);
 
         // 2. Get Total Daily Income
         var totalDailyIncome = await context
-            .PaymentTransactions.Where(pt =>
+            .PaymentTransactions.IgnoreQueryFilters()
+            .Where(pt =>
                 pt.Invoice.Group.TeacherId == teacherId
                 && pt.CreatedAt >= startOfToday
                 && pt.CreatedAt < startOfTomorrow
@@ -34,7 +51,8 @@ public class DashboardService(ApplicationDBContext context) : IDashboardService
 
         // 3. Get Total Monthly Income
         var totalMonthlyIncome = await context
-            .PaymentTransactions.Where(pt =>
+            .PaymentTransactions.IgnoreQueryFilters()
+            .Where(pt =>
                 pt.Invoice.Group.TeacherId == teacherId
                 && pt.CreatedAt >= startOfMonth
                 && pt.CreatedAt < startOfNextMonth
@@ -70,7 +88,8 @@ public class DashboardService(ApplicationDBContext context) : IDashboardService
 
         // 6. Get Total 6 Months Transaction To Chart
         var chartRevenueData = await context
-            .PaymentTransactions.Where(pt =>
+            .PaymentTransactions.IgnoreQueryFilters()
+            .Where(pt =>
                 pt.Invoice.Group.TeacherId == teacherId
                 && pt.CreatedAt >= sixMonthAgo
                 && pt.CreatedAt < startOfNextMonth
