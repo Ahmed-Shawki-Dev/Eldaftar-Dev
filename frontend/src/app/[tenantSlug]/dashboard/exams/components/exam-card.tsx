@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/card'
 import { format, parseISO } from 'date-fns'
 import { arEG } from 'date-fns/locale'
-import { Link, useParams } from 'react-router'
+import { Link } from 'react-router'
 import type { GroupSummaryDto } from '../../groups/groups.type'
 import type { ExamDto } from '../exams.type'
 import RemoveExamDialog from './remove-exam-dialog'
@@ -22,8 +22,6 @@ interface IProps {
 }
 
 export default function ExamCard({ exam, groups, slug }: IProps) {
-  const { tenantSlug } = useParams()
-
   const formattedDate = exam.date
     ? format(parseISO(exam.date), 'd MMMM yyyy', { locale: arEG })
     : 'بدون تاريخ'
@@ -53,7 +51,7 @@ export default function ExamCard({ exam, groups, slug }: IProps) {
           variant='outline'
           size='sm'
           className='w-full'
-          render={<Link to={`/${tenantSlug}/exams/${exam.id}/sheet`} />}
+          render={<Link to={`${exam.id}/sheet`} />}
         >
           رصد الدرجات
         </Button>
