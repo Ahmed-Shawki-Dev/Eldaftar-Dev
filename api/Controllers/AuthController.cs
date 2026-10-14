@@ -1,5 +1,6 @@
 using System.Security.Principal;
 using api.DTOs;
+using api.Filters;
 using api.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -47,6 +48,7 @@ public class AuthController(IAuthService authService) : BaseApiController
 
     [Authorize]
     [HttpPost("{slug}/auth/logout")]
+    [ServiceFilter(typeof(CheckTeacherTenantFilter))]
     public IActionResult Logout([FromRoute] string slug)
     {
         Response.Cookies.Delete(
@@ -64,17 +66,10 @@ public class AuthController(IAuthService authService) : BaseApiController
 
     [Authorize]
     [HttpGet("{slug}/auth/me")]
+    [ServiceFilter(typeof(CheckTeacherTenantFilter))]
     public IActionResult GetCurrentUser([FromRoute] string slug)
     {
-        var userContext = User.GetUserContext();
-
-        if (
-            userContext is null
-            || !string.Equals(userContext.TenantSlug, slug, StringComparison.OrdinalIgnoreCase)
-        )
-        {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر.");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         var dto = new CurrentUserDto(
             userContext.UserId,

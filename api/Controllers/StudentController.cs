@@ -1,4 +1,5 @@
 using api.DTOs;
+using api.Filters;
 using api.Helpers;
 using api.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -8,6 +9,7 @@ namespace api.Controllers;
 
 [Route("api/{slug}/students")]
 [Authorize(Roles = "Teacher,Staff")]
+[ServiceFilter(typeof(CheckTeacherTenantFilter))]
 public class StudentController(IStudentService studentService) : BaseApiController
 {
     [HttpPost]
@@ -17,14 +19,7 @@ public class StudentController(IStudentService studentService) : BaseApiControll
     )
     {
         // 1. Check Authorization & Ownership
-        var userContext = User.GetUserContext();
-        if (
-            userContext == null
-            || userContext.TenantSlug != slug
-        )
-        {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         // 2. Execute Business Logic
         var result = await studentService.CreateStudentAsync(
@@ -47,14 +42,7 @@ public class StudentController(IStudentService studentService) : BaseApiControll
     )
     {
         // 1. Check Authorization & Ownership
-        var userContext = User.GetUserContext();
-        if (
-            userContext == null
-            || userContext.TenantSlug != slug
-        )
-        {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         // 2. Execute Business Logic
         var result = await studentService.GetAllStudentsAsync(
@@ -77,14 +65,7 @@ public class StudentController(IStudentService studentService) : BaseApiControll
     )
     {
         // 1. Check Authorization & Ownership
-        var userContext = User.GetUserContext();
-        if (
-            userContext == null
-            || userContext.TenantSlug != slug
-        )
-        {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         // 2. Execute Business Logic
         var result = await studentService.GetStudentByIdAsync(
@@ -110,14 +91,7 @@ public class StudentController(IStudentService studentService) : BaseApiControll
     )
     {
         // 1. Check Authorization & Ownership
-        var userContext = User.GetUserContext();
-        if (
-            userContext == null
-            || userContext.TenantSlug != slug
-        )
-        {
-            return ForbiddenRes("غير مصرح لك بتعديل بيانات هذا الطالب");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         // 2. Execute Business Logic
         var result = await studentService.UpdateStudentAsync(
@@ -143,14 +117,7 @@ public class StudentController(IStudentService studentService) : BaseApiControll
     )
     {
         // 1. Check Authorization & Ownership
-        var userContext = User.GetUserContext();
-        if (
-            userContext == null
-            || userContext.TenantSlug != slug
-        )
-        {
-            return ForbiddenRes("غير مصرح لك بحذف هذا الطالب");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         // 2. Execute Business Logic
         var result = await studentService.SoftDeleteStudentAsync(

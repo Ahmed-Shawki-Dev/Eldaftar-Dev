@@ -1,3 +1,4 @@
+using api.Filters;
 using api.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -6,17 +7,14 @@ namespace api.Controllers;
 
 [Route("api/{slug}/dashboard")]
 [Authorize(Roles = "Teacher")]
+[ServiceFilter(typeof(CheckTeacherTenantFilter))]
 public class DashboardController(IDashboardService dashboardService) : BaseApiController
 {
     [HttpGet]
     public async Task<IActionResult> GetTeacherDashboardDataAsync([FromRoute] string slug)
     {
         // 1. Check Authorization & Ownership
-        var userContext = User.GetUserContext();
-        if (userContext == null || userContext.TenantSlug != slug)
-        {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         // 2. Execute Business Logic
         var result = await dashboardService.GetDashboardTeacherDataAsync(

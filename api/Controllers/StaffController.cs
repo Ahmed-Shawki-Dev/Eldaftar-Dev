@@ -1,4 +1,5 @@
 using api.DTOs;
+using api.Filters;
 using api.Helpers;
 using api.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -8,6 +9,7 @@ namespace api.Controllers;
 
 [Route("api/{slug}/staff")]
 [Authorize(Roles = "Teacher")]
+[ServiceFilter(typeof(CheckTeacherTenantFilter))]
 public class StaffController(IStaffService staffService) : BaseApiController
 {
     [HttpPost]
@@ -16,14 +18,7 @@ public class StaffController(IStaffService staffService) : BaseApiController
         [FromBody] CreateStaffDto dto
     )
     {
-        var userContext = User.GetUserContext();
-        if (
-            userContext == null
-            || userContext.TenantSlug != slug
-        )
-        {
-            return ForbiddenRes("غير مصرح لك بإضافة سكرتارية لهذا المدرس");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         var result = await staffService.CreateStaffAsync(
             userContext.TenantId,
@@ -40,18 +35,9 @@ public class StaffController(IStaffService staffService) : BaseApiController
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAllStaff(
-        [FromRoute] string slug
-    )
+    public async Task<IActionResult> GetAllStaff([FromRoute] string slug)
     {
-        var userContext = User.GetUserContext();
-        if (
-            userContext == null
-            || userContext.TenantSlug != slug
-        )
-        {
-            return ForbiddenRes("غير مصرح لك بعرض سكرتارية هذا المدرس");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         var result = await staffService.GetAllStaffAsync(
             userContext.TenantId,
@@ -73,14 +59,7 @@ public class StaffController(IStaffService staffService) : BaseApiController
         [FromBody] UpdateStaffDto dto
     )
     {
-        var userContext = User.GetUserContext();
-        if (
-            userContext == null
-            || userContext.TenantSlug != slug
-        )
-        {
-            return ForbiddenRes("غير مصرح لك بتعديل بيانات هذه السكرتيرة");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         var result = await staffService.UpdateStaffAsync(
             userContext.TenantId,
@@ -98,19 +77,9 @@ public class StaffController(IStaffService staffService) : BaseApiController
     }
 
     [HttpDelete("{staffId:guid}")]
-    public async Task<IActionResult> DeleteStaff(
-        [FromRoute] string slug,
-        [FromRoute] Guid staffId
-    )
+    public async Task<IActionResult> DeleteStaff([FromRoute] string slug, [FromRoute] Guid staffId)
     {
-        var userContext = User.GetUserContext();
-        if (
-            userContext == null
-            || userContext.TenantSlug != slug
-        )
-        {
-            return ForbiddenRes("غير مصرح لك بحذف هذه السكرتيرة");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         var result = await staffService.DeleteStaffAsync(
             userContext.TenantId,

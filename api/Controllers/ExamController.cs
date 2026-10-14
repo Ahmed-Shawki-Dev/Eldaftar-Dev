@@ -1,4 +1,5 @@
 using api.DTOs;
+using api.Filters;
 using api.Helpers;
 using api.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -8,6 +9,7 @@ namespace api.Controllers;
 
 [Route("api/{slug}/exams")]
 [Authorize(Roles = "Teacher,Staff")]
+[ServiceFilter(typeof(CheckTeacherTenantFilter))]
 public class ExamController(IExamService examService) : BaseApiController
 {
     // * 1.Create New Exam
@@ -18,14 +20,7 @@ public class ExamController(IExamService examService) : BaseApiController
     )
     {
         // 1. Check Authorization & Ownership
-        var userContext = User.GetUserContext();
-        if (
-            userContext == null
-            || userContext.TenantSlug != slug
-        )
-        {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         // 2. Execute Business Logic
         var result = await examService.CreateExamAsync(
@@ -50,14 +45,7 @@ public class ExamController(IExamService examService) : BaseApiController
     )
     {
         // 1. Check Authorization & Ownership
-        var userContext = User.GetUserContext();
-        if (
-            userContext == null
-            || userContext.TenantSlug != slug
-        )
-        {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         // 2. Execute Business Logic
         var result = await examService.GetAllExamsAsync(
@@ -76,20 +64,10 @@ public class ExamController(IExamService examService) : BaseApiController
 
     // * 3. Get Exam By Id
     [HttpGet("{examId:guid}")]
-    public async Task<IActionResult> GetExamById(
-        [FromRoute] string slug,
-        [FromRoute] Guid examId
-    )
+    public async Task<IActionResult> GetExamById([FromRoute] string slug, [FromRoute] Guid examId)
     {
         // 1. Check Authorization & Ownership
-        var userContext = User.GetUserContext();
-        if (
-            userContext == null
-            || userContext.TenantSlug != slug
-        )
-        {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         // 2. Execute Business Logic
         var result = await examService.GetExamByIdAsync(
@@ -115,14 +93,7 @@ public class ExamController(IExamService examService) : BaseApiController
     )
     {
         // 1. Check Authorization & Ownership
-        var userContext = User.GetUserContext();
-        if (
-            userContext == null
-            || userContext.TenantSlug != slug
-        )
-        {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         // 2. Execute Business Logic
         var result = await examService.UpdateExamAsync(
@@ -142,20 +113,10 @@ public class ExamController(IExamService examService) : BaseApiController
 
     // * 5. Delete Exam
     [HttpDelete("{examId:guid}")]
-    public async Task<IActionResult> DeleteExam(
-        [FromRoute] string slug,
-        [FromRoute] Guid examId
-    )
+    public async Task<IActionResult> DeleteExam([FromRoute] string slug, [FromRoute] Guid examId)
     {
         // 1. Check Authorization & Ownership
-        var userContext = User.GetUserContext();
-        if (
-            userContext == null
-            || userContext.TenantSlug != slug
-        )
-        {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         // 2. Execute Business Logic
         var result = await examService.DeleteExamAsync(
@@ -174,20 +135,10 @@ public class ExamController(IExamService examService) : BaseApiController
 
     // * 6. Get Exam Sheet
     [HttpGet("{examId:guid}/sheet")]
-    public async Task<IActionResult> GetExamSheet(
-        [FromRoute] string slug,
-        [FromRoute] Guid examId
-    )
+    public async Task<IActionResult> GetExamSheet([FromRoute] string slug, [FromRoute] Guid examId)
     {
         // 1. Check Authorization & Ownership
-        var userContext = User.GetUserContext();
-        if (
-            userContext == null
-            || userContext.TenantSlug != slug
-        )
-        {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         // 2. Execute Business Logic
         var result = await examService.GetExamSheetAsync(
@@ -213,14 +164,7 @@ public class ExamController(IExamService examService) : BaseApiController
     )
     {
         // 1. Check Authorization & Ownership
-        var userContext = User.GetUserContext();
-        if (
-            userContext == null
-            || userContext.TenantSlug != slug
-        )
-        {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         // 2. Execute Business Logic
         var result = await examService.SaveBulkExamSheetAsync(

@@ -1,4 +1,5 @@
 using api.DTOs;
+using api.Filters;
 using api.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,6 +8,7 @@ namespace api.Controllers;
 
 [Route("api/{slug}/payments")]
 [Authorize(Roles = "Teacher,Staff")]
+[ServiceFilter(typeof(CheckTeacherTenantFilter))]
 public class PaymentController(IPaymentService paymentService) : BaseApiController
 {
     [HttpPost("generate-monthly")]
@@ -15,11 +17,7 @@ public class PaymentController(IPaymentService paymentService) : BaseApiControll
         [FromQuery] string? monthKey
     )
     {
-        var userContext = User.GetUserContext();
-        if (userContext == null || userContext.TenantSlug != slug)
-        {
-            return ForbiddenRes("غير مصرح لك بإجراء هذه العملية");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         var result = await paymentService.GenerateMonthlyInvoicesAsync(
             userContext.TenantId,
@@ -41,11 +39,7 @@ public class PaymentController(IPaymentService paymentService) : BaseApiControll
         [FromRoute] string studentCode
     )
     {
-        var userContext = User.GetUserContext();
-        if (userContext == null || userContext.TenantSlug != slug)
-        {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس.");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         var result = await paymentService.GetStudentPendingInvoicesByCodeAsync(
             userContext.TenantId,
@@ -68,11 +62,7 @@ public class PaymentController(IPaymentService paymentService) : BaseApiControll
         [FromQuery] PaymentFilterDto filterDto
     )
     {
-        var userContext = User.GetUserContext();
-        if (userContext == null || userContext.TenantSlug != slug)
-        {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس.");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         var result = await paymentService.GetPaymentSheetAsync(
             userContext.TenantId,
@@ -95,11 +85,7 @@ public class PaymentController(IPaymentService paymentService) : BaseApiControll
         [FromBody] CollectPaymentDto dto
     )
     {
-        var userContext = User.GetUserContext();
-        if (userContext == null || userContext.TenantSlug != slug)
-        {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس.");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         var result = await paymentService.CollectPaymentAsync(
             userContext.TenantId,
@@ -122,11 +108,7 @@ public class PaymentController(IPaymentService paymentService) : BaseApiControll
         [FromBody] CancelPaymentDto dto
     )
     {
-        var userContext = User.GetUserContext();
-        if (userContext == null || userContext.TenantSlug != slug)
-        {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس.");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         var result = await paymentService.CancelPaymentAsync(
             userContext.TenantId,

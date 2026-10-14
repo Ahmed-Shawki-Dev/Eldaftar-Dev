@@ -1,12 +1,14 @@
 namespace api.Controllers;
 
 using api.DTOs;
+using api.Filters;
 using api.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [Route("api/{slug}/sessions/{sessionId:guid}/attendance")]
 [Authorize]
+[ServiceFilter(typeof(CheckTeacherTenantFilter))]
 public class AttendanceController(IAttendanceService attendanceService) : BaseApiController
 {
     // * Submit Bulk Attendance
@@ -17,11 +19,7 @@ public class AttendanceController(IAttendanceService attendanceService) : BaseAp
         [FromBody] BulkAttendanceDto dto
     )
     {
-        var userContext = User.GetUserContext();
-        if (userContext == null || userContext.TenantSlug != slug)
-        {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس.");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         var result = await attendanceService.BulkAttendanceAsync(
             userContext.TenantId,
@@ -47,11 +45,7 @@ public class AttendanceController(IAttendanceService attendanceService) : BaseAp
         [FromBody] AddVisitorStudentDto dto
     )
     {
-        var userContext = User.GetUserContext();
-        if (userContext == null || userContext.TenantSlug != slug)
-        {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس.");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         var result = await attendanceService.AddVisitorStudentToSessionAsync(
             userContext.TenantId,

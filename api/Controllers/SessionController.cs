@@ -1,6 +1,7 @@
 namespace api.Controllers;
 
 using api.DTOs;
+using api.Filters;
 using api.Helpers;
 using api.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 [Route("api/{slug}/sessions")]
 [Authorize(Roles = "Teacher,Staff")]
+[ServiceFilter(typeof(CheckTeacherTenantFilter))]
 public class SessionController(ISessionService sessionService) : BaseApiController
 {
     // * 1. Get Daily Sessions Cards
@@ -17,14 +19,7 @@ public class SessionController(ISessionService sessionService) : BaseApiControll
         [FromQuery] DailySessionsParamsDto parameters
     )
     {
-        var userContext = User.GetUserContext();
-        if (
-            userContext == null
-            || userContext.TenantSlug != slug
-        )
-        {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس.");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         var result = await sessionService.GetDailySessionsAsync(
             userContext.TenantId,
@@ -47,14 +42,7 @@ public class SessionController(ISessionService sessionService) : BaseApiControll
         [FromBody] StartSessionDto dto
     )
     {
-        var userContext = User.GetUserContext();
-        if (
-            userContext == null
-            || userContext.TenantSlug != slug
-        )
-        {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس.");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         var result = await sessionService.StartOrCreateSessionAsync(
             userContext.TenantId,
@@ -77,14 +65,7 @@ public class SessionController(ISessionService sessionService) : BaseApiControll
         [FromRoute] Guid sessionId
     )
     {
-        var userContext = User.GetUserContext();
-        if (
-            userContext == null
-            || userContext.TenantSlug != slug
-        )
-        {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس.");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         var result = await sessionService.GetSessionSheetAsync(
             userContext.TenantId,

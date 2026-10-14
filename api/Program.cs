@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json.Serialization;
 using api.Data;
+using api.Filters;
 using api.Interfaces;
 using api.Models;
 using api.Services;
@@ -129,6 +130,7 @@ builder.Services.AddScoped<IAttendanceService, AttendanceService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IBackupService, BackupService>();
+builder.Services.AddScoped<CheckTeacherTenantFilter>();
 
 var app = builder.Build();
 

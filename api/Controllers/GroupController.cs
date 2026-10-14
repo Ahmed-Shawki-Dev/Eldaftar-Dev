@@ -1,4 +1,5 @@
 using api.DTOs;
+using api.Filters;
 using api.Helpers;
 using api.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -7,7 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace api.Controllers;
 
 [Route("api/{slug}/groups")]
-[Authorize(Roles = "Teacher,Staff")]
+[Authorize(Roles = "Teacher,Staff,CenterAdmin")]
+[ServiceFilter(typeof(CheckTeacherTenantFilter))]
 public class GroupController(IGroupService groupService) : BaseApiController
 {
     // * 1.Create New Group
@@ -18,11 +20,7 @@ public class GroupController(IGroupService groupService) : BaseApiController
     )
     {
         // 1. Check Authorization & Ownership
-        var userContext = User.GetUserContext();
-        if (userContext == null || userContext.TenantSlug != slug)
-        {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         // 2. Execute Business Logic
         var result = await groupService.CreateGroupAsync(
@@ -47,11 +45,7 @@ public class GroupController(IGroupService groupService) : BaseApiController
     )
     {
         // 1. Check Authorization & Ownership
-        var userContext = User.GetUserContext();
-        if (userContext == null || userContext.TenantSlug != slug)
-        {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         // 2. Execute Business Logic
         var result = await groupService.GetGroupsAsync(
@@ -66,20 +60,10 @@ public class GroupController(IGroupService groupService) : BaseApiController
 
     // * 3.Get Group By Id
     [HttpGet("{groupId:guid}")]
-    public async Task<IActionResult> GetGroupById(
-        [FromRoute] string slug,
-        [FromRoute] Guid groupId
-    )
+    public async Task<IActionResult> GetGroupById([FromRoute] string slug, [FromRoute] Guid groupId)
     {
         // 1. Check Authorization & Ownership
-        var userContext = User.GetUserContext();
-        if (
-            userContext == null
-            || userContext.TenantSlug != slug
-        )
-        {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         // 2. Execute Business Logic
         var result = await groupService.GetGroupByIdAsync(
@@ -105,14 +89,7 @@ public class GroupController(IGroupService groupService) : BaseApiController
     )
     {
         // 1. Check Authorization & Ownership
-        var userContext = User.GetUserContext();
-        if (
-            userContext == null
-            || userContext.TenantSlug != slug
-        )
-        {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         // 2. Execute Business Logic
         var result = await groupService.UpdateGroupAsync(
@@ -133,20 +110,10 @@ public class GroupController(IGroupService groupService) : BaseApiController
 
     // * 5.Delete Group
     [HttpDelete("{groupId:guid}")]
-    public async Task<IActionResult> DeleteGroup(
-        [FromRoute] string slug,
-        [FromRoute] Guid groupId
-    )
+    public async Task<IActionResult> DeleteGroup([FromRoute] string slug, [FromRoute] Guid groupId)
     {
         // 1. Check Authorization & Ownership
-        var userContext = User.GetUserContext();
-        if (
-            userContext == null
-            || userContext.TenantSlug != slug
-        )
-        {
-            return ForbiddenRes("غير مصرح لك بالوصول لبيانات هذا السنتر/المدرس");
-        }
+        var userContext = (UserContext)HttpContext.Items["UserContext"]!;
 
         // 2. Execute Business Logic
         var result = await groupService.SoftDeleteGroupAsync(
